@@ -592,6 +592,222 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с описанием",
+          "description": "Тест-кейс: Создание проекта с описанием и проверка его отображения в списке проектов и на странице проекта",
+          "item": [
+            {
+              "name": "EXECUTE - POST /api/Projects (Create with description)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем уникальное имя проекта с описанием",
+                      "var suffix = Date.now();",
+                      "pm.environment.set('descProjectName', 'test_desc_' + suffix);",
+                      "pm.environment.set('descProjectDescription', 'Тестовое описание проекта для автотеста ' + suffix);",
+                      "console.log('Creating project with description: ' + pm.environment.get('descProjectName'));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// EXECUTE: Создание проекта с описанием",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект с описанием создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('descProjectId', projectId);",
+                      "    console.log('Created project with description, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{descProjectName}}\",\n  \"description\": \"{{descProjectDescription}}\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "VERIFY 1 - GET /api/Projects/{id} (Check project description)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// VERIFY 1: Проверка описания на странице проекта",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is JSON', function () {",
+                      "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projectName = pm.environment.get('descProjectName');",
+                      "var projectDesc = pm.environment.get('descProjectDescription');",
+                      "",
+                      "pm.test('Project name matches', function () {",
+                      "    pm.expect(json.name).to.equal(projectName);",
+                      "});",
+                      "",
+                      "pm.test('Project description matches', function () {",
+                      "    pm.expect(json.description).to.equal(projectDesc);",
+                      "    console.log('Description in project: ' + json.description);",
+                      "});",
+                      "",
+                      "pm.test('Project ID matches', function () {",
+                      "    var createdId = pm.environment.get('descProjectId');",
+                      "    pm.expect(json.id).to.equal(createdId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{descProjectId}}"
+              }
+            },
+            {
+              "name": "VERIFY 2 - GET /api/Projects (Check description in list)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// VERIFY 2: Проверка описания в списке проектов",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is JSON', function () {",
+                      "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projectId = pm.environment.get('descProjectId');",
+                      "var projectName = pm.environment.get('descProjectName');",
+                      "var projectDesc = pm.environment.get('descProjectDescription');",
+                      "",
+                      "pm.test('Projects list contains created project', function () {",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "    var foundProject = json.result.find(function(p) { return p.id === projectId; });",
+                      "    pm.expect(foundProject).to.be.an('object');",
+                      "});",
+                      "",
+                      "var foundProject = json.result.find(function(p) { return p.id === projectId; });",
+                      "",
+                      "if (foundProject) {",
+                      "    pm.test('Project name in list matches', function () {",
+                      "        pm.expect(foundProject.name).to.equal(projectName);",
+                      "    });",
+                      "    ",
+                      "    pm.test('Project description in list matches', function () {",
+                      "        pm.expect(foundProject.description).to.equal(projectDesc);",
+                      "        console.log('Description in list: ' + foundProject.description);",
+                      "    });",
+                      "} else {",
+                      "    pm.test('Project found in list', function () {",
+                      "        pm.expect(false, 'Created project not found in list').to.be.true;",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=100",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "100" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Delete project)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEARDOWN: Удаление созданного проекта",
+                      "// =========================================",
+                      "",
+                      "var projectId = pm.environment.get('descProjectId');",
+                      "",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted project with description: ' + projectId);",
+                      "    pm.environment.unset('descProjectId');",
+                      "    pm.environment.unset('descProjectName');",
+                      "    pm.environment.unset('descProjectDescription');",
+                      "} else {",
+                      "    pm.test('Skipped - нет созданного проекта', function () {",
+                      "        pm.expect(true).to.be.true;",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{descProjectId}}"
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта с неуникальным именем",
           "description": "Тест-кейс: Попытка создания проекта с уже существующим именем - должна вернуться ошибка",
           "item": [
