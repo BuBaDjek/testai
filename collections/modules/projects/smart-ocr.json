@@ -592,6 +592,136 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с неуникальным именем",
+          "description": "Тест-кейс: Попытка создания проекта с уже существующим именем - должна вернуться ошибка",
+          "item": [
+            {
+              "name": "SETUP - Получить список существующих проектов",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// SETUP: Получаем список проектов и запоминаем имя первого",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is JSON', function () {",
+                      "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "console.log('Projects response: ' + JSON.stringify(json));",
+                      "",
+                      "// Проверяем структуру ответа",
+                      "pm.test('Projects list is not empty', function () {",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "    pm.expect(json.result.length).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "if (json.result && json.result.length > 0) {",
+                      "    var existingProjectName = json.result[0].name;",
+                      "    pm.environment.set('existingProjectName', existingProjectName);",
+                      "    console.log('Found existing project name: ' + existingProjectName);",
+                      "} else {",
+                      "    console.log('No projects found - test may fail');",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "10" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEST - Попытка создать проект с неуникальным именем",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var existingName = pm.environment.get('existingProjectName');",
+                      "if (!existingName) {",
+                      "    console.log('Warning: existingProjectName not set');",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST: Создание проекта с существующим именем - ошибка",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 400 - Ошибка дублирования имени', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response contains error message', function () {",
+                      "    var json = pm.response.json();",
+                      "    pm.expect(json.isValid).to.equal(false);",
+                      "    pm.expect(json.errors).to.be.an('array');",
+                      "    pm.expect(json.errors.length).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "pm.test('Error message indicates non-unique name', function () {",
+                      "    var json = pm.response.json();",
+                      "    var errorMessage = json.errors[0].errorMessage;",
+                      "    pm.expect(errorMessage).to.include('уникальным');",
+                      "    console.log('Error message: ' + errorMessage);",
+                      "});",
+                      "",
+                      "pm.test('Error contains duplicate project name', function () {",
+                      "    var json = pm.response.json();",
+                      "    var existingName = pm.environment.get('existingProjectName');",
+                      "    pm.expect(json.errors[0].attemptedValue.name).to.equal(existingName);",
+                      "});",
+                      "",
+                      "// Очистка",
+                      "pm.environment.unset('existingProjectName');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{existingProjectName}}\",\n  \"description\": \"\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта с наименованием методом граничных значений",
           "description": "Тест-кейс: Проверка граничных значений длины имени проекта (99, 100, 101 символов)",
           "item": [
