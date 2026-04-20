@@ -938,6 +938,123 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с пустыми полями",
+          "description": "Тест-кейс: Попытка создания проекта с пустым полем названия - должна вернуться ошибка",
+          "item": [
+            {
+              "name": "TEST - Попытка создать проект с пустым названием",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST: Создание проекта с пустым name - ошибка",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 400 - Ошибка при пустом названии', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Response contains error message', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "        pm.expect(json.isValid).to.equal(false);",
+                      "        pm.expect(json.errors).to.be.an('array');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "pm.test('Error indicates name is required', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        if (json.errors && json.errors.length > 0) {",
+                      "            var errorMessage = json.errors[0].errorMessage || json.errors[0];",
+                      "            console.log('Error message: ' + errorMessage);",
+                      "            pm.expect(errorMessage.toLowerCase()).to.match(/name|назван/i);",
+                      "        }",
+                      "    } catch (e) {",
+                      "        console.log('Could not parse error details');",
+                      "    }",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"\",\n  \"description\": \"\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "VERIFY - GET /api/Projects (Check project not in list)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// VERIFY: Проверка что проект с пустым name не создан",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is JSON', function () {",
+                      "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('No project with empty name in list', function () {",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "    var emptyNameProject = json.result.find(function(p) {",
+                      "        return p.name === '' || p.name === null;",
+                      "    });",
+                      "    pm.expect(emptyNameProject).to.be.undefined;",
+                      "});",
+                      "",
+                      "console.log('Verified: no project with empty name exists');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=100",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "100" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта с описанием методом граничных значений",
           "description": "Тест-кейс: Проверка граничных значений длины описания проекта (499, 500, 501 символов)",
           "item": [
