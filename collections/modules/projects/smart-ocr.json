@@ -587,6 +587,251 @@
           }
         }
       ]
+    },
+    {
+      "name": "Проверить создание проекта типа (Распознавание документов произвольной формы)",
+      "description": "Тест-кейс: Создание проекта типа Распознавание документов произвольной формы (modelUsage=2)",
+      "item": [
+        {
+          "name": "EXECUTE - POST /api/Projects (Create FreeForm Project)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// =========================================",
+                  "// PREREQUEST: Инициализация имени проекта",
+                  "// =========================================",
+                  "",
+                  "if (!pm.environment.get('freeFormRunSuffix')) {",
+                  "    pm.environment.set('freeFormRunSuffix', String(Date.now()));",
+                  "}",
+                  "",
+                  "var suffix = pm.environment.get('freeFormRunSuffix');",
+                  "",
+                  "if (!pm.environment.get('freeFormProjectName')) {",
+                  "    pm.environment.set('freeFormProjectName', 'autotest_freeform_' + suffix);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// =========================================",
+                  "// EXECUTE: Создание проекта FreeForm",
+                  "// =========================================",
+                  "",
+                  "pm.test('Status 201 - Проект создан', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains project ID', function () {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                  "    ",
+                  "    var projectId = parseInt(responseText, 10);",
+                  "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                  "    ",
+                  "    pm.environment.set('freeFormProjectId', projectId);",
+                  "    console.log('Created freeForm project with ID: ' + projectId);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{freeFormProjectName}}\",\n  \"description\": \"\",\n  \"component\": 0,\n  \"modelUsage\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/Projects"
+          }
+        },
+        {
+          "name": "VERIFY - GET /api/Projects/{id} (Get created project)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// =========================================",
+                  "// VERIFY: Проверка созданного проекта FreeForm",
+                  "// =========================================",
+                  "",
+                  "pm.test('Status 200 - Проект найден', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "var projectName = pm.environment.get('freeFormProjectName');",
+                  "",
+                  "pm.test('Project ID matches', function () {",
+                  "    var createdId = pm.environment.get('freeFormProjectId');",
+                  "    pm.expect(json.id).to.equal(createdId);",
+                  "});",
+                  "",
+                  "pm.test('Project name matches', function () {",
+                  "    pm.expect(json.name).to.equal(projectName);",
+                  "});",
+                  "",
+                  "pm.test('Component is 0', function () {",
+                  "    pm.expect(json.component).to.equal(0);",
+                  "});",
+                  "",
+                  "pm.test('Model usage is 2 (FreeForm)', function () {",
+                  "    pm.expect(json.smartOCRModelUsage).to.equal(2);",
+                  "});",
+                  "",
+                  "pm.test('DataSet count is 0', function () {",
+                  "    pm.expect(json.dataSetCount).to.equal(0);",
+                  "});",
+                  "",
+                  "pm.test('freeDoc is true (FreeForm)', function () {",
+                  "    pm.expect(json.freeDoc).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Projects/{{freeFormProjectId}}"
+          }
+        },
+        {
+          "name": "VERIFY - GET /api/MarkingSchemes/project/{id} (Check marking scheme)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// =========================================",
+                  "// VERIFY: Проверка схемы разметки для FreeForm",
+                  "// =========================================",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is JSON', function () {",
+                  "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test('Marking schemes returned', function () {",
+                  "    pm.expect(json.result).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('At least one marking scheme exists', function () {",
+                  "    pm.expect(json.result.length).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "if (json.result.length > 0) {",
+                  "    var scheme = json.result[0];",
+                  "    pm.test('Marking scheme has correct project ID', function () {",
+                  "        var projectId = pm.environment.get('freeFormProjectId');",
+                  "        pm.expect(scheme.projectId).to.equal(projectId);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/MarkingSchemes/project/{{freeFormProjectId}}?parentless=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "MarkingSchemes", "project", "{{freeFormProjectId}}"],
+              "query": [
+                { "key": "parentless", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "TEARDOWN - DELETE /api/Projects/{id} (Delete project)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// =========================================",
+                  "// TEARDOWN: Удаление созданного проекта FreeForm",
+                  "// =========================================",
+                  "",
+                  "var projectId = pm.environment.get('freeFormProjectId');",
+                  "",
+                  "if (projectId) {",
+                  "    pm.test('Status 2xx - Проект удалён', function () {",
+                  "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                  "    });",
+                  "    ",
+                  "    console.log('Deleted freeForm project: ' + projectId);",
+                  "    pm.environment.unset('freeFormProjectId');",
+                  "    pm.environment.unset('freeFormProjectName');",
+                  "    pm.environment.unset('freeFormRunSuffix');",
+                  "} else {",
+                  "    pm.test('Skipped - нет созданного проекта', function () {",
+                  "        pm.expect(true).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Projects/{{freeFormProjectId}}"
+          }
+        }
+      ]
     }
   ],
   "variable": []
