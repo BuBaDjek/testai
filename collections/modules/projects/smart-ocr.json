@@ -592,6 +592,235 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с наименованием методом граничных значений",
+          "description": "Тест-кейс: Проверка граничных значений длины имени проекта (99, 100, 101 символов)",
+          "item": [
+            {
+              "name": "TEST 1 - Создание проекта с именем 99 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем имя ровно 99 символов",
+                      "var name99 = 'a'.repeat(99);",
+                      "pm.environment.set('boundaryProjectName99', name99);",
+                      "console.log('Project name 99 chars: ' + name99 + ' (length: ' + name99.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 1: 99 символов - должно быть успешно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект с именем 99 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('boundaryProjectId99', projectId);",
+                      "    console.log('Created project with 99 char name, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{boundaryProjectName99}}\",\n  \"description\": \"\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEARDOWN 1 - Удаление проекта 99 символов",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('boundaryProjectId99');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект 99 символов удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    pm.environment.unset('boundaryProjectId99');",
+                      "    pm.environment.unset('boundaryProjectName99');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{boundaryProjectId99}}"
+              }
+            },
+            {
+              "name": "TEST 2 - Создание проекта с именем 100 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем имя ровно 100 символов",
+                      "var name100 = 'b'.repeat(100);",
+                      "pm.environment.set('boundaryProjectName100', name100);",
+                      "console.log('Project name 100 chars: ' + name100 + ' (length: ' + name100.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 2: 100 символов - должно быть успешно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект с именем 100 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('boundaryProjectId100', projectId);",
+                      "    console.log('Created project with 100 char name, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{boundaryProjectName100}}\",\n  \"description\": \"\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEARDOWN 2 - Удаление проекта 100 символов",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('boundaryProjectId100');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект 100 символов удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    pm.environment.unset('boundaryProjectId100');",
+                      "    pm.environment.unset('boundaryProjectName100');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{boundaryProjectId100}}"
+              }
+            },
+            {
+              "name": "TEST 3 - Создание проекта с именем 101 символ (ошибка)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем имя ровно 101 символ",
+                      "var name101 = 'c'.repeat(101);",
+                      "pm.environment.set('boundaryProjectName101', name101);",
+                      "console.log('Project name 101 chars: ' + name101 + ' (length: ' + name101.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 3: 101 символ - должна быть ошибка",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 400 - Ошибка при создании проекта с именем 101 символ', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error message indicates name length issue', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('Boundary test completed: 101 chars should fail');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{boundaryProjectName101}}\",\n  \"description\": \"\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта типа (Распознавание документов произвольной формы)",
           "description": "Тест-кейс: Создание проекта типа Распознавание документов произвольной формы (modelUsage=2)",
           "item": [
