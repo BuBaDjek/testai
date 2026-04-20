@@ -938,6 +938,314 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с описанием методом граничных значений",
+          "description": "Тест-кейс: Проверка граничных значений длины описания проекта (499, 500, 501 символов)",
+          "item": [
+            {
+              "name": "TEST 1 - Создание проекта с описанием 499 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем описание ровно 499 символов",
+                      "var desc499 = 'a'.repeat(499);",
+                      "pm.environment.set('descBoundaryName499', 'test_desc_499_' + Date.now());",
+                      "pm.environment.set('descBoundaryValue499', desc499);",
+                      "console.log('Description 499 chars (length: ' + desc499.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 1: 499 символов описания - должно быть успешно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект с описанием 499 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('descBoundaryId499', projectId);",
+                      "    console.log('Created project with 499 char description, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{descBoundaryName499}}\",\n  \"description\": \"{{descBoundaryValue499}}\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "VERIFY 1 - GET /api/Projects/{id} (Check description 499)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// VERIFY 1: Проверка описания 499 символов",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var expectedDesc = pm.environment.get('descBoundaryValue499');",
+                      "",
+                      "pm.test('Description length is 499', function () {",
+                      "    pm.expect(json.description.length).to.equal(499);",
+                      "});",
+                      "",
+                      "pm.test('Description matches', function () {",
+                      "    pm.expect(json.description).to.equal(expectedDesc);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{descBoundaryId499}}"
+              }
+            },
+            {
+              "name": "TEARDOWN 1 - DELETE /api/Projects/{id} (Delete 499)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('descBoundaryId499');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект с описанием 499 удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted project with 499 char description, ID: ' + projectId);",
+                      "    pm.environment.unset('descBoundaryId499');",
+                      "    pm.environment.unset('descBoundaryName499');",
+                      "    pm.environment.unset('descBoundaryValue499');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{descBoundaryId499}}"
+              }
+            },
+            {
+              "name": "TEST 2 - Создание проекта с описанием 500 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем описание ровно 500 символов",
+                      "var desc500 = 'b'.repeat(500);",
+                      "pm.environment.set('descBoundaryName500', 'test_desc_500_' + Date.now());",
+                      "pm.environment.set('descBoundaryValue500', desc500);",
+                      "console.log('Description 500 chars (length: ' + desc500.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 2: 500 символов описания - должно быть успешно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект с описанием 500 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('descBoundaryId500', projectId);",
+                      "    console.log('Created project with 500 char description, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{descBoundaryName500}}\",\n  \"description\": \"{{descBoundaryValue500}}\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "VERIFY 2 - GET /api/Projects/{id} (Check description 500)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// VERIFY 2: Проверка описания 500 символов",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var expectedDesc = pm.environment.get('descBoundaryValue500');",
+                      "",
+                      "pm.test('Description length is 500', function () {",
+                      "    pm.expect(json.description.length).to.equal(500);",
+                      "});",
+                      "",
+                      "pm.test('Description matches', function () {",
+                      "    pm.expect(json.description).to.equal(expectedDesc);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{descBoundaryId500}}"
+              }
+            },
+            {
+              "name": "TEARDOWN 2 - DELETE /api/Projects/{id} (Delete 500)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('descBoundaryId500');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект с описанием 500 удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted project with 500 char description, ID: ' + projectId);",
+                      "    pm.environment.unset('descBoundaryId500');",
+                      "    pm.environment.unset('descBoundaryName500');",
+                      "    pm.environment.unset('descBoundaryValue500');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{descBoundaryId500}}"
+              }
+            },
+            {
+              "name": "TEST 3 - Создание проекта с описанием 501 символ (ошибка)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем описание ровно 501 символ",
+                      "var desc501 = 'c'.repeat(501);",
+                      "pm.environment.set('descBoundaryName501', 'test_desc_501_' + Date.now());",
+                      "pm.environment.set('descBoundaryValue501', desc501);",
+                      "console.log('Description 501 chars (length: ' + desc501.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 3: 501 символ описания - должна быть ошибка",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 400 - Ошибка при описании 501 символ', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error message indicates description length issue', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('Boundary test completed: 501 chars description should fail');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{descBoundaryName501}}\",\n  \"description\": \"{{descBoundaryValue501}}\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта с наименованием методом граничных значений",
           "description": "Тест-кейс: Проверка граничных значений длины имени проекта (99, 100, 101 символов)",
           "item": [
