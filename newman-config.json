@@ -1,0 +1,14 @@
+{
+  "collection": {
+    "info": {
+      "name": "AuthTest"
+    }
+  },
+  "reports": {
+    "allure": {
+      "cleanResultDirectory": true,
+      "flattenFolders": false
+    }
+  },
+  "iterationCount": 1
+}

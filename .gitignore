@@ -1,0 +1,25 @@
+# Результаты тестов
+allure-results/
+allure-report/
+*allure-results*
+
+# HAR файлы (исходники можно оставить)
+# *.har
+
+# Временные файлы
+*.log
+*.tmp
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node
+node_modules/
+package-lock.json
+
+# Newman
+newman/

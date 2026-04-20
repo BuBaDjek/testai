@@ -1,0 +1,2335 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Primo.AI.Api.Inference",
+    "version": "1.26.3.1"
+  },
+  "paths": {
+    "/api/AgentSystem/{routingKey}/async": {
+      "post": {
+        "tags": [
+          "AgentSystem"
+        ],
+        "summary": "Асинхронный AgentSystem-запроса.\r\nВозвращает ключ запроса, по которому затем необходимо запрашивать ответ.\r\nПри указании query-параметра !:ws=true, фрагменты ответа приходят по WebSocket по мере готовности.",
+        "parameters": [
+          {
+            "name": "routingKey",
+            "in": "path",
+            "description": "Ключ маршрутизации.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ws",
+            "in": "query",
+            "description": "Отправлять ли обратную связь в WebSocket.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Форма с параметрами запроса.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestJsonAsyncDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Запущена обработка запроса"
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Нет доступных лицензий для агента"
+          },
+          "422": {
+            "description": "Нет доступных агентов"
+          }
+        }
+      }
+    },
+    "/api/AgentSystem/{requestKey}": {
+      "get": {
+        "tags": [
+          "AgentSystem"
+        ],
+        "summary": "Получение запроса на Inference по идентификатору",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "Идентификатор запроса",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Результат запроса отсутствует",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AgentSystem/ready": {
+      "get": {
+        "tags": [
+          "AgentSystem"
+        ],
+        "summary": "Получение списка готовых запросов",
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AgentSystem/{routingKey}/status": {
+      "get": {
+        "tags": [
+          "AgentSystem"
+        ],
+        "summary": "Получение готовности сервера обрабатывать запрос с указанным ключом маршрутизации.",
+        "parameters": [
+          {
+            "name": "routingKey",
+            "in": "path",
+            "description": "Ключ маршрутизации",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Статус модели успешно проверен"
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Nlp/{modelType}/sync": {
+      "post": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Синхронный NLP-запрос.\r\nОтвет формируется постепенно по пере готовности с использованием Transfer-Encoding: chunked.",
+        "parameters": [
+          {
+            "name": "modelType",
+            "in": "path",
+            "description": "Тип модели (ключ маршрутизации).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ContextFile": {
+                    "type": "string",
+                    "description": "Содержимое контекста запроса. Альтернатива Context, ContextFileId.",
+                    "format": "binary"
+                  },
+                  "Context": {
+                    "type": "string",
+                    "description": "Контекст запроса в виде json. Альтернатива ContextFile, ContextFileId."
+                  },
+                  "Prompt": {
+                    "type": "string",
+                    "description": "Текст для генерации ответа."
+                  },
+                  "SystemMessage": {
+                    "type": "string",
+                    "description": "Системное сообщение."
+                  },
+                  "ResponseSchema": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Схема ответа нейросети в виде списка ключей поиска. Может отсутствовать. Альтернатива ResponseSchemaJson."
+                  },
+                  "ResponseSchemaJson": {
+                    "type": "string",
+                    "description": "Схема ответа нейросети в виде json со списком ключей поиска. Может отсутствовать. Формат: [\"key1\", \"key2\"]. Альтернатива ResponseSchema."
+                  },
+                  "ResponseLength": {
+                    "type": "integer",
+                    "description": "Длина ответа (1-4096 символов). По-умолчанию: 128.",
+                    "format": "int32"
+                  },
+                  "Temperature": {
+                    "type": "number",
+                    "description": "Температура. По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "MinP": {
+                    "type": "number",
+                    "description": "Дополнительный параметр, определяющий порог в диапазоне выбора токенов\r\n            (0 - любой, 1 - самый вероятный). По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "Image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "MatchResponseSchema": {
+                    "type": "boolean"
+                  },
+                  "RequestGroup": {
+                    "type": "string",
+                    "description": "Имя очереди для обработки входящих запросов"
+                  },
+                  "Think": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "encoding": {
+                "ContextFile": {
+                  "style": "form"
+                },
+                "Context": {
+                  "style": "form"
+                },
+                "Prompt": {
+                  "style": "form"
+                },
+                "SystemMessage": {
+                  "style": "form"
+                },
+                "ResponseSchema": {
+                  "style": "form"
+                },
+                "ResponseSchemaJson": {
+                  "style": "form"
+                },
+                "ResponseLength": {
+                  "style": "form"
+                },
+                "Temperature": {
+                  "style": "form"
+                },
+                "MinP": {
+                  "style": "form"
+                },
+                "Image": {
+                  "style": "form"
+                },
+                "MatchResponseSchema": {
+                  "style": "form"
+                },
+                "RequestGroup": {
+                  "style": "form"
+                },
+                "Think": {
+                  "style": "form"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ContextFile": {
+                    "type": "string",
+                    "description": "Содержимое контекста запроса. Альтернатива Context, ContextFileId.",
+                    "format": "binary"
+                  },
+                  "Context": {
+                    "type": "string",
+                    "description": "Контекст запроса в виде json. Альтернатива ContextFile, ContextFileId."
+                  },
+                  "Prompt": {
+                    "type": "string",
+                    "description": "Текст для генерации ответа."
+                  },
+                  "SystemMessage": {
+                    "type": "string",
+                    "description": "Системное сообщение."
+                  },
+                  "ResponseSchema": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Схема ответа нейросети в виде списка ключей поиска. Может отсутствовать. Альтернатива ResponseSchemaJson."
+                  },
+                  "ResponseSchemaJson": {
+                    "type": "string",
+                    "description": "Схема ответа нейросети в виде json со списком ключей поиска. Может отсутствовать. Формат: [\"key1\", \"key2\"]. Альтернатива ResponseSchema."
+                  },
+                  "ResponseLength": {
+                    "type": "integer",
+                    "description": "Длина ответа (1-4096 символов). По-умолчанию: 128.",
+                    "format": "int32"
+                  },
+                  "Temperature": {
+                    "type": "number",
+                    "description": "Температура. По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "MinP": {
+                    "type": "number",
+                    "description": "Дополнительный параметр, определяющий порог в диапазоне выбора токенов\r\n            (0 - любой, 1 - самый вероятный). По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "Image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "MatchResponseSchema": {
+                    "type": "boolean"
+                  },
+                  "RequestGroup": {
+                    "type": "string",
+                    "description": "Имя очереди для обработки входящих запросов"
+                  },
+                  "Think": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "encoding": {
+                "ContextFile": {
+                  "style": "form"
+                },
+                "Context": {
+                  "style": "form"
+                },
+                "Prompt": {
+                  "style": "form"
+                },
+                "SystemMessage": {
+                  "style": "form"
+                },
+                "ResponseSchema": {
+                  "style": "form"
+                },
+                "ResponseSchemaJson": {
+                  "style": "form"
+                },
+                "ResponseLength": {
+                  "style": "form"
+                },
+                "Temperature": {
+                  "style": "form"
+                },
+                "MinP": {
+                  "style": "form"
+                },
+                "Image": {
+                  "style": "form"
+                },
+                "MatchResponseSchema": {
+                  "style": "form"
+                },
+                "RequestGroup": {
+                  "style": "form"
+                },
+                "Think": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Запрос обработан"
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Нет доступных лицензий для агента"
+          },
+          "422": {
+            "description": "Нет доступных агентов"
+          }
+        }
+      }
+    },
+    "/api/Nlp/{modelType}/async": {
+      "post": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Асинхронный NLP-запрос.\r\nВозвращает ключ запроса, по которому затем необходимо запрашивать ответ.\r\nПри указании query-параметра !:ws=true, фрагменты ответа приходят по WebSocket по мере готовности.",
+        "parameters": [
+          {
+            "name": "modelType",
+            "in": "path",
+            "description": "Тип модели (ключ маршрутизации).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ws",
+            "in": "query",
+            "description": "Отправлять ли обратную связь в WebSocket.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ContextFileId": {
+                    "type": "string",
+                    "description": "Идентификатор уже существующего файла с контекстом запроса. Альтернатива Context, ContextFile.",
+                    "format": "uuid"
+                  },
+                  "ContextFile": {
+                    "type": "string",
+                    "description": "Содержимое контекста запроса. Альтернатива Context, ContextFileId.",
+                    "format": "binary"
+                  },
+                  "Context": {
+                    "type": "string",
+                    "description": "Контекст запроса в виде json. Альтернатива ContextFile, ContextFileId."
+                  },
+                  "Prompt": {
+                    "type": "string",
+                    "description": "Текст для генерации ответа."
+                  },
+                  "SystemMessage": {
+                    "type": "string",
+                    "description": "Системное сообщение."
+                  },
+                  "ResponseSchema": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Схема ответа нейросети в виде списка ключей поиска. Может отсутствовать. Альтернатива ResponseSchemaJson."
+                  },
+                  "ResponseSchemaJson": {
+                    "type": "string",
+                    "description": "Схема ответа нейросети в виде json со списком ключей поиска. Может отсутствовать. Формат: [\"key1\", \"key2\"]. Альтернатива ResponseSchema."
+                  },
+                  "ResponseLength": {
+                    "type": "integer",
+                    "description": "Длина ответа (1-4096 символов). По-умолчанию: 128.",
+                    "format": "int32"
+                  },
+                  "Temperature": {
+                    "type": "number",
+                    "description": "Температура. По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "MinP": {
+                    "type": "number",
+                    "description": "Дополнительный параметр, определяющий порог в диапазоне выбора токенов\r\n            (0 - любой, 1 - самый вероятный). По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "Image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "MatchResponseSchema": {
+                    "type": "boolean"
+                  },
+                  "RequestGroup": {
+                    "type": "string",
+                    "description": "Имя очереди для обработки входящих запросов"
+                  },
+                  "Think": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "encoding": {
+                "ContextFileId": {
+                  "style": "form"
+                },
+                "ContextFile": {
+                  "style": "form"
+                },
+                "Context": {
+                  "style": "form"
+                },
+                "Prompt": {
+                  "style": "form"
+                },
+                "SystemMessage": {
+                  "style": "form"
+                },
+                "ResponseSchema": {
+                  "style": "form"
+                },
+                "ResponseSchemaJson": {
+                  "style": "form"
+                },
+                "ResponseLength": {
+                  "style": "form"
+                },
+                "Temperature": {
+                  "style": "form"
+                },
+                "MinP": {
+                  "style": "form"
+                },
+                "Image": {
+                  "style": "form"
+                },
+                "MatchResponseSchema": {
+                  "style": "form"
+                },
+                "RequestGroup": {
+                  "style": "form"
+                },
+                "Think": {
+                  "style": "form"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ContextFileId": {
+                    "type": "string",
+                    "description": "Идентификатор уже существующего файла с контекстом запроса. Альтернатива Context, ContextFile.",
+                    "format": "uuid"
+                  },
+                  "ContextFile": {
+                    "type": "string",
+                    "description": "Содержимое контекста запроса. Альтернатива Context, ContextFileId.",
+                    "format": "binary"
+                  },
+                  "Context": {
+                    "type": "string",
+                    "description": "Контекст запроса в виде json. Альтернатива ContextFile, ContextFileId."
+                  },
+                  "Prompt": {
+                    "type": "string",
+                    "description": "Текст для генерации ответа."
+                  },
+                  "SystemMessage": {
+                    "type": "string",
+                    "description": "Системное сообщение."
+                  },
+                  "ResponseSchema": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Схема ответа нейросети в виде списка ключей поиска. Может отсутствовать. Альтернатива ResponseSchemaJson."
+                  },
+                  "ResponseSchemaJson": {
+                    "type": "string",
+                    "description": "Схема ответа нейросети в виде json со списком ключей поиска. Может отсутствовать. Формат: [\"key1\", \"key2\"]. Альтернатива ResponseSchema."
+                  },
+                  "ResponseLength": {
+                    "type": "integer",
+                    "description": "Длина ответа (1-4096 символов). По-умолчанию: 128.",
+                    "format": "int32"
+                  },
+                  "Temperature": {
+                    "type": "number",
+                    "description": "Температура. По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "MinP": {
+                    "type": "number",
+                    "description": "Дополнительный параметр, определяющий порог в диапазоне выбора токенов\r\n            (0 - любой, 1 - самый вероятный). По-умолчанию: 0.1.",
+                    "format": "double"
+                  },
+                  "Image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "MatchResponseSchema": {
+                    "type": "boolean"
+                  },
+                  "RequestGroup": {
+                    "type": "string",
+                    "description": "Имя очереди для обработки входящих запросов"
+                  },
+                  "Think": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "encoding": {
+                "ContextFileId": {
+                  "style": "form"
+                },
+                "ContextFile": {
+                  "style": "form"
+                },
+                "Context": {
+                  "style": "form"
+                },
+                "Prompt": {
+                  "style": "form"
+                },
+                "SystemMessage": {
+                  "style": "form"
+                },
+                "ResponseSchema": {
+                  "style": "form"
+                },
+                "ResponseSchemaJson": {
+                  "style": "form"
+                },
+                "ResponseLength": {
+                  "style": "form"
+                },
+                "Temperature": {
+                  "style": "form"
+                },
+                "MinP": {
+                  "style": "form"
+                },
+                "Image": {
+                  "style": "form"
+                },
+                "MatchResponseSchema": {
+                  "style": "form"
+                },
+                "RequestGroup": {
+                  "style": "form"
+                },
+                "Think": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Запущена обработка запроса"
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Нет доступных лицензий для агента"
+          },
+          "422": {
+            "description": "Нет доступных агентов"
+          }
+        }
+      }
+    },
+    "/api/Nlp/{requestKey}": {
+      "get": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Получение запроса на Inference по идентификатору",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "Идентификатор запроса",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Результат запроса отсутствует",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Nlp/ready": {
+      "get": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Получение списка готовых запросов",
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Nlp/{requestKey}/cancel": {
+      "post": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Отмена запроса на Inference по идентификатору",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "Идентификатор запроса",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Результат запроса отсутствует",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Nlp/{requestKey}/repeat": {
+      "post": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Повторная отправка запроса на Inference по идентификатору исходного запроса.",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "Идентификатор запроса",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Запущена обработка запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Результат запроса отсутствует",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Nlp/{modelType}/status": {
+      "get": {
+        "tags": [
+          "Nlp"
+        ],
+        "summary": "Получение готовности сервера обрабатывать запрос с указанным ключом маршрутизации.",
+        "parameters": [
+          {
+            "name": "modelType",
+            "in": "path",
+            "description": "Ключ маршрутизации",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Статус модели успешно проверен"
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SmartOcr": {
+      "post": {
+        "tags": [
+          "SmartOcr"
+        ],
+        "summary": "Создание запроса на Inference файла изображения",
+        "parameters": [
+          {
+            "name": "modelType",
+            "in": "header",
+            "description": "Тип модели/документа",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ws",
+            "in": "query",
+            "description": "Отправлять ли обратную связь в WebSocket.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "requestGroup",
+            "in": "query",
+            "description": "Имя очереди для обработки входящих запросов",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "requestFile"
+                ],
+                "type": "object",
+                "properties": {
+                  "requestFile": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "requestFile": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Запрос поставлен в очередь.\r\n            Результат будет позже, запрашивается по идентификатору, который возвратит метод.\r\n            Пример ответа: \"02043e26-0230-494a-bff7-29f3182f46b9\""
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Client Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SmartOcr/status": {
+      "get": {
+        "tags": [
+          "SmartOcr"
+        ],
+        "summary": "Получение готовности сервера обрабатывать запрос с указанным типом модели.",
+        "parameters": [
+          {
+            "name": "modelType",
+            "in": "header",
+            "description": "Тип модели/документа",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Статус модели успешно проверен"
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SmartOcr/{requestKey}": {
+      "get": {
+        "tags": [
+          "SmartOcr"
+        ],
+        "summary": "Получение запроса на Inference по идентификатору",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "Идентификатор запроса",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Результат запроса отсутствует",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SmartOcr/ready": {
+      "get": {
+        "tags": [
+          "SmartOcr"
+        ],
+        "summary": "Получение списка готовых запросов",
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SmartOcr/{requestKey}/cancel": {
+      "post": {
+        "tags": [
+          "SmartOcr"
+        ],
+        "summary": "Отмена запроса на Inference по идентификатору",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "Идентификатор запроса",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Результат запроса возвращен"
+          },
+          "403": {
+            "description": "Доступ запрещен",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Результат запроса отсутствует",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/SmartOcr/{requestKey}/File/{requestFileId}": {
+      "get": {
+        "tags": [
+          "SmartOcr"
+        ],
+        "summary": "",
+        "parameters": [
+          {
+            "name": "requestKey",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "requestFileId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "tenantId",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Version": {
+      "get": {
+        "tags": [
+          "Version"
+        ],
+        "summary": "Запрос версии сборки",
+        "responses": {
+          "200": {
+            "description": "Версия сборки"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Microsoft.AspNetCore.Mvc.ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Ключ запроса.",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Дата и время создания запроса.",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Дата и время истечения срока хранения запроса.",
+            "format": "date-time"
+          },
+          "routingKey": {
+            "type": "string",
+            "description": "Ключ маршрутизации запроса.",
+            "nullable": true
+          },
+          "result": {
+            "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestResultDto"
+          },
+          "isPostProcessingRequired": {
+            "type": "boolean",
+            "description": "Требуется ли постпроцессинг.\r\nЗначение появляется не сразу, а при старте обработке запроса.\r\nЕсли true, то в Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestDto.Result не будет флага Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestResultDto.IsReady до тех пор, пока не будет произведен постпроцессинг.",
+            "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.RequestFileDto"
+            },
+            "description": "Фигурировавшие в запросе файлы.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Запрос на Inference компонент AgentSystem."
+      },
+      "Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestJsonAsyncDto": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Текст для генерации ответа.",
+            "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte"
+            },
+            "description": "Файлы запроса.",
+            "nullable": true
+          },
+          "dataKey": {
+            "type": "string",
+            "description": "Ключ данных. Позволяет дополнительно отделить данные в рамках тенанта/пользователя.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "DTO для асинхронного AgentSystem-запроса в формате JSON."
+      },
+      "Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestResultDto": {
+        "type": "object",
+        "properties": {
+          "streamingStartedAt": {
+            "type": "string",
+            "description": "Дата и время получения первого фрагмента результата.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Дата и время последнего обновления ответа.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "streamingCompletedAt": {
+            "type": "string",
+            "description": "Дата и время последнего изменения запроса на получение результата.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isReady": {
+            "type": "boolean",
+            "description": "Завершен ли запрос.\r\nПринимает значение true, если есть ответ нейросети или произошла ошибка."
+          },
+          "isFailed": {
+            "type": "boolean",
+            "description": "Произошла ли ошибка.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "answer": {
+            "type": "string",
+            "description": "Ответ нейросети.\r\nЕсли ответ готов только частично, флаг Primo.AI.Api.Inference.Dto.AgentSystem.AgentSystemRequestResultDto.IsReady будет принимать значение false.\r\nЕсли произошла ошибка, может содержать частичный ответ (на момент возникновения ошибки).",
+            "nullable": true
+          },
+          "errorMsg": {
+            "type": "string",
+            "description": "Сообщение об ошибке (при неудачной обработке запроса).",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Результат запроса к AgentSystem."
+      },
+      "Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Ключ запроса.",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Дата и время создания запроса.",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Дата и время истечения срока хранения запроса.",
+            "format": "date-time"
+          },
+          "modelType": {
+            "type": "string",
+            "description": "Тип модели запроса.",
+            "nullable": true
+          },
+          "result": {
+            "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.NLP.NlpRequestResultDto"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.RequestFileDto"
+            },
+            "description": "Фигурировавшие в запросе файлы.",
+            "nullable": true
+          },
+          "isPostProcessingRequired": {
+            "type": "boolean",
+            "description": "Требуется ли постпроцессинг.\r\nЗначение появляется не сразу, а при старте обработке запроса.\r\nЕсли true, то в Primo.AI.Api.Inference.Dto.NLP.NlpRequestDto.Result не будет флага Primo.AI.Api.Inference.Dto.NLP.NlpRequestResultDto.IsReady до тех пор, пока не будет произведен постпроцессинг.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Запрос на Inference компонент LLM > NLP."
+      },
+      "Primo.AI.Api.Inference.Dto.NLP.NlpRequestResultDto": {
+        "type": "object",
+        "properties": {
+          "streamingStartedAt": {
+            "type": "string",
+            "description": "Дата и время получения первого фрагмента результата.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "Дата и время последнего обновления ответа.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "streamingCompletedAt": {
+            "type": "string",
+            "description": "Дата и время последнего изменения запроса на получение результата.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isReady": {
+            "type": "boolean",
+            "description": "Завершен ли запрос.\r\nПринимает значение true, если есть ответ нейросети или произошла ошибка."
+          },
+          "isFailed": {
+            "type": "boolean",
+            "description": "Произошла ли ошибка.",
+            "nullable": true,
+            "readOnly": true
+          },
+          "isMatchingResponseSchema": {
+            "type": "boolean",
+            "description": "Сопоставилились ли ключи ответа с ответом нейросети.",
+            "nullable": true
+          },
+          "rawAnswer": {
+            "type": "string",
+            "description": "Сырой ответ нейросети. Совпадает с Primo.AI.Api.Inference.Dto.NLP.NlpRequestResultDto.Answer кроме случаев, когда произошел постпроцессинг.",
+            "nullable": true
+          },
+          "answer": {
+            "type": "string",
+            "description": "Ответ нейросети.\r\nЕсли ответ готов только частично, флаг Primo.AI.Api.Inference.Dto.NLP.NlpRequestResultDto.IsReady будет принимать значение false.\r\nЕсли произошла ошибка, может содержать частичный ответ (на момент возникновения ошибки).",
+            "nullable": true
+          },
+          "errorMsg": {
+            "type": "string",
+            "description": "Сообщение об ошибке (при неудачной обработке запроса).",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Результат запроса к NLP-модели."
+      },
+      "Primo.AI.Api.Inference.Dto.RequestFileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Идентификатор файла.",
+            "format": "uuid"
+          },
+          "originalFileName": {
+            "type": "string",
+            "description": "Исходное название файла.",
+            "nullable": true
+          },
+          "extension": {
+            "type": "string",
+            "description": "Расширение файла.",
+            "nullable": true
+          },
+          "contentType": {
+            "type": "string",
+            "description": "Тип содержимого.",
+            "nullable": true
+          },
+          "contentLength": {
+            "type": "integer",
+            "description": "Размер файла.",
+            "format": "int64"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Primo.AI.Enums.InferenceRequestFileType"
+          },
+          "sourceFileType": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "fileType": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Информация о файле запроса на Инференс."
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.BoundingBoxDto": {
+        "type": "object",
+        "properties": {
+          "minX": {
+            "type": "number",
+            "format": "double"
+          },
+          "minY": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxX": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxY": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.RequestResultDtoImageTransforms": {
+        "type": "object",
+        "properties": {
+          "rotationAngle": {
+            "type": "number",
+            "description": "На какой угол необходимо повернуть изображение.",
+            "format": "double"
+          },
+          "isApplied": {
+            "type": "boolean",
+            "description": "Применена ли трансформация на изображении."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Информация о требуемой трансформации изображения перед наложением полей с координатами.\r\nНеобходимо для корректного отображения документа и полей на нем."
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestDto": {
+        "type": "object",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Дата и время создания запроса.",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Дата и время истечения срока хранения запроса.",
+            "format": "date-time"
+          },
+          "modelType": {
+            "type": "string",
+            "description": "Тип модели запроса.",
+            "nullable": true
+          },
+          "resultIsReady": {
+            "type": "boolean",
+            "description": "Готовность результата (true - готов, false - не готов).",
+            "readOnly": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestFileDto"
+            },
+            "description": "Фигурировавшие в запросе файлы.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Запрос на Inference компонента Smart OCR."
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestFileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Идентификатор файла.",
+            "format": "uuid"
+          },
+          "originalFileName": {
+            "type": "string",
+            "description": "Исходное название файла.",
+            "nullable": true
+          },
+          "extension": {
+            "type": "string",
+            "description": "Расширение файла.",
+            "nullable": true
+          },
+          "contentType": {
+            "type": "string",
+            "description": "Тип содержимого.",
+            "nullable": true
+          },
+          "contentLength": {
+            "type": "integer",
+            "description": "Размер файла.",
+            "format": "int64"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Primo.AI.Enums.InferenceRequestFileType"
+          },
+          "sourceFileType": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "fileType": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "result": {
+            "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDto"
+          },
+          "order": {
+            "type": "integer",
+            "description": "Порядок файла в запросе.",
+            "format": "int32"
+          },
+          "isFinalState": {
+            "type": "boolean",
+            "description": "Завершена ли обработка изображения.\r\nЕсли false, то возможен постпроцессинг.",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDto": {
+        "type": "object",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "Дата и время создания запроса на получение результата.",
+            "format": "date-time"
+          },
+          "badConfidenceLevel": {
+            "type": "number",
+            "description": "Верхняя граница (включительно) низкого качества распознавания.",
+            "format": "double",
+            "nullable": true
+          },
+          "goodConfidenceLevel": {
+            "type": "number",
+            "description": "Нижняя граница (включительно) высокого качества распознавания.",
+            "format": "double",
+            "nullable": true
+          },
+          "imageTransforms": {
+            "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.RequestResultDtoImageTransforms"
+          },
+          "unifiedText": {
+            "type": "string",
+            "description": "Полный текст на неструктурированном изображении.",
+            "nullable": true
+          },
+          "errorMsg": {
+            "type": "string",
+            "description": "Сообщение об ошибке (при неудачной обработке запроса).",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDtoItem"
+            },
+            "description": "Распознанные данные (при успешной обработке запроса).",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Результат выполнения Inference"
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDtoItem": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Распознанное поле.",
+            "nullable": true
+          },
+          "confidence": {
+            "type": "number",
+            "description": "Уверенность распознавания поля.\r\nОт 0 до 1.\r\nТрактовать помогут Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDto.Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDto.BadConfidenceLevel/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDto.GoodConfidenceLevel.",
+            "format": "double",
+            "nullable": true
+          },
+          "coordinates": {
+            "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.BoundingBoxDto"
+          },
+          "text": {
+            "type": "string",
+            "description": "Распознанный текст - для текстовых полей.",
+            "nullable": true
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDtoRow"
+            },
+            "description": "Строки таблицы - для табличных полей.",
+            "nullable": true
+          },
+          "modelType": {
+            "type": "string",
+            "description": "Тип модели, связанный с полем - для полей классификатора.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Распознанные данные."
+      },
+      "Primo.AI.Api.Inference.Dto.SmartOCR.SmartOcrRequestResultDtoRow": {
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Текст, содержащийся в ячейках строки.",
+            "nullable": true
+          },
+          "confidence": {
+            "type": "number",
+            "description": "Уверенность распознавания строки.",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Строка распознанной таблицы."
+      },
+      "Primo.AI.Enums.InferenceRequestFileType": {
+        "enum": [
+          "0 = Image",
+          "1 = Context"
+        ],
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "Please insert JWT with Bearer into field",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}
