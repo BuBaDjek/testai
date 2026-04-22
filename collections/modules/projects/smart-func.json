@@ -314,6 +314,142 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить сортировку проектов",
+          "description": "Тест-кейс: Проверка сортировки проектов по дате создания и названию",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Projects?sorting=CreatedAt (Сортировка по дате создания)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('At least one project exists', function () {",
+                      "    pm.expect(json.result.length).to.be.at.least(2);",
+                      "});",
+                      "",
+                      "pm.test('Projects are sorted by CreatedAt (ascending)', function () {",
+                      "    var projects = json.result;",
+                      "    for (var i = 1; i < projects.length; i++) {",
+                      "        var prevDate = new Date(projects[i-1].createdAt);",
+                      "        var currDate = new Date(projects[i].createdAt);",
+                      "        pm.expect(currDate >= prevDate).to.be.true;",
+                      "    }",
+                      "});",
+                      "",
+                      "// Сохраняем порядок для сравнения",
+                      "var sortedByDate = json.result.map(function(p) { return p.id; });",
+                      "pm.environment.set('sortedByDateIds', JSON.stringify(sortedByDate));",
+                      "console.log('Sorted by CreatedAt: ' + sortedByDate.length + ' projects');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects?sorting=Name (Сортировка по названию)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('At least one project exists', function () {",
+                      "    pm.expect(json.result.length).to.be.at.least(2);",
+                      "});",
+                      "",
+                      "pm.test('Projects are sorted by Name (ascending alphabetically)', function () {",
+                      "    var projects = json.result;",
+                      "    for (var i = 1; i < projects.length; i++) {",
+                      "        var prevName = projects[i-1].name || '';",
+                      "        var currName = projects[i].name || '';",
+                      "        // Сравнение строк с учётом локали (кириллица)",
+                      "        pm.expect(currName.localeCompare(prevName, 'ru') >= 0).to.be.true;",
+                      "    }",
+                      "});",
+                      "",
+                      "// Проверяем что порядок отличается от сортировки по дате",
+                      "var sortedByDateIds = JSON.parse(pm.environment.get('sortedByDateIds') || '[]');",
+                      "var sortedByNameIds = json.result.map(function(p) { return p.id; });",
+                      "",
+                      "pm.test('Sort order differs between CreatedAt and Name', function () {",
+                      "    // Проверяем что хотя бы одна позиция отличается",
+                      "    var hasDifference = false;",
+                      "    for (var i = 0; i < Math.min(sortedByDateIds.length, sortedByNameIds.length); i++) {",
+                      "        if (sortedByDateIds[i] !== sortedByNameIds[i]) {",
+                      "            hasDifference = true;",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(hasDifference).to.be.true;",
+                      "});",
+                      "",
+                      "console.log('Sorted by Name: ' + sortedByNameIds.length + ' projects');",
+                      "",
+                      "// Cleanup",
+                      "pm.environment.unset('sortedByDateIds');",
+                      "console.log('Cleanup completed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=Name&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "Name" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }
