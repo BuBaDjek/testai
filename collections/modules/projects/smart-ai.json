@@ -1210,6 +1210,296 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с пустым именем и 1, 2, 3 символами",
+          "description": "Тест-кейс: Проверка граничных значений длины имени проекта AI Текст (пустое, 1, 2, 3 символа)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Projects (Получить количество проектов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projectCount = json.result ? json.result.length : 0;",
+                      "pm.environment.set('aiProjectCountInitial', projectCount);",
+                      "console.log('Initial project count: ' + projectCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageSize", "value": "100" },
+                    { "key": "pageNumber", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEST 1 - Создание проекта с пустым именем (ошибка)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400 - Ошибка при создании проекта с пустым именем', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error response is valid', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('TEST 1: Empty name should fail - verified');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEST 2 - Создание проекта с именем 1 символ (ошибка)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400 - Ошибка при создании проекта с именем 1 символ', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error response is valid', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('TEST 2: 1 char name should fail - verified');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"a\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEST 3 - Создание проекта с именем 2 символа (ошибка)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400 - Ошибка при создании проекта с именем 2 символа', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error response is valid', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('TEST 3: 2 char name should fail - verified');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"ab\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEST 4 - Создание проекта с именем 3 символа (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.environment.set('aiProjectName3', 'abc');",
+                      "console.log('Creating project with 3 char name: abc');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект AI с именем 3 символа создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('aiProjectId3', projectId);",
+                      "    console.log('Created AI project with 3 char name, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName3}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects (Проверить что список изменился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = pm.environment.get('aiProjectCountInitial');",
+                      "var currentCount = json.result ? json.result.length : 0;",
+                      "",
+                      "pm.test('Project count increased by 1 (only 3 char project created)', function () {",
+                      "    pm.expect(currentCount).to.equal(parseInt(initialCount) + 1);",
+                      "});",
+                      "",
+                      "console.log('Project count: initial=' + initialCount + ', current=' + currentCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageSize", "value": "100" },
+                    { "key": "pageNumber", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Удаление проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('aiProjectId3');",
+                      "",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted AI project with 3 char name, ID: ' + projectId);",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}",
+                      "",
+                      "pm.environment.unset('aiProjectId3');",
+                      "pm.environment.unset('aiProjectName3');",
+                      "pm.environment.unset('aiProjectCountInitial');",
+                      "",
+                      "console.log('Cleanup completed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiProjectId3}}"
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта с описанием",
           "description": "Тест-кейс: Проверка корректного сохранения описания проекта и его отображения в списке и на странице проекта",
           "item": [
