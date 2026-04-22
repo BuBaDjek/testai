@@ -65,14 +65,27 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "X-Client-Type", "value": "Browser" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/auth/account"
               }
@@ -121,13 +134,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName99}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -157,7 +180,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiProjectId99}}"
               }
             },
@@ -199,13 +227,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName100}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -235,7 +273,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiProjectId100}}"
               }
             },
@@ -282,13 +325,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName101}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -349,14 +402,30 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "Projects"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "Projects"
+                  ],
                   "query": [
-                    { "key": "pageSize", "value": "100" },
-                    { "key": "pageNumber", "value": "0" }
+                    {
+                      "key": "pageSize",
+                      "value": "100"
+                    },
+                    {
+                      "key": "pageNumber",
+                      "value": "0"
+                    }
                   ]
                 }
               }
@@ -406,13 +475,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiDuplicateProjectName}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -448,14 +527,30 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "Projects"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "Projects"
+                  ],
                   "query": [
-                    { "key": "pageSize", "value": "100" },
-                    { "key": "pageNumber", "value": "0" }
+                    {
+                      "key": "pageSize",
+                      "value": "100"
+                    },
+                    {
+                      "key": "pageNumber",
+                      "value": "0"
+                    }
                   ]
                 }
               }
@@ -506,13 +601,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{nlpProjectName}}\",\n  \"description\": \"{{nlpProjectDesc}}\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -552,7 +657,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
             },
@@ -610,13 +720,23 @@
               "request": {
                 "method": "PUT",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"id\": {{nlpProjectId}},\n  \"name\": \"{{nlpEditedName}}\",\n  \"description\": \"{{nlpEditedDesc}}\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
@@ -656,7 +776,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
             },
@@ -689,7 +814,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
             }
@@ -738,13 +868,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{navProjectName}}\",\n  \"description\": \"Тест навигации по вкладкам NLP\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -773,7 +913,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{navProjectId}}"
               }
             },
@@ -796,7 +941,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/enums/NlpEngines"
               }
             },
@@ -825,7 +975,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/ModelTemplates?component=NLP&allowedForProjectId={{navProjectId}}"
               }
             },
@@ -854,7 +1009,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/NlpTask/project/{{navProjectId}}"
               }
             },
@@ -877,7 +1037,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/NlpContextFiles?IsPredefined=true"
               }
             },
@@ -900,7 +1065,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/NlpSystemMessages?IsPredefined=true"
               }
             },
@@ -923,7 +1093,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/InferenceProcesses/agents/llm?projectId={{navProjectId}}"
               }
             },
@@ -952,7 +1127,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/ModelTypes?component=NLP&ActiveProjectId={{navProjectId}}"
               }
             },
@@ -982,7 +1162,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{navProjectId}}"
               }
             }
@@ -1031,13 +1216,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName499}}\",\n  \"description\": \"{{aiProjectDesc499}}\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1068,7 +1263,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiProjectId499}}"
               }
             },
@@ -1111,13 +1311,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName500}}\",\n  \"description\": \"{{aiProjectDesc500}}\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1148,7 +1358,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiProjectId500}}"
               }
             },
@@ -1196,13 +1411,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName501}}\",\n  \"description\": \"{{aiProjectDesc501}}\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1235,14 +1460,30 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "Projects"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "Projects"
+                  ],
                   "query": [
-                    { "key": "pageSize", "value": "100" },
-                    { "key": "pageNumber", "value": "0" }
+                    {
+                      "key": "pageSize",
+                      "value": "100"
+                    },
+                    {
+                      "key": "pageNumber",
+                      "value": "0"
+                    }
                   ]
                 }
               }
@@ -1279,13 +1520,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1322,13 +1573,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"a\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1365,13 +1626,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"ab\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1413,13 +1684,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiProjectName3}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1451,14 +1732,30 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "Projects"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "Projects"
+                  ],
                   "query": [
-                    { "key": "pageSize", "value": "100" },
-                    { "key": "pageNumber", "value": "0" }
+                    {
+                      "key": "pageSize",
+                      "value": "100"
+                    },
+                    {
+                      "key": "pageNumber",
+                      "value": "0"
+                    }
                   ]
                 }
               }
@@ -1493,7 +1790,12 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiProjectId3}}"
               }
             }
@@ -1544,13 +1846,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" },
-                  { "key": "Content-Type", "value": "application/json" }
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"{{aiDescProjectName}}\",\n  \"description\": \"{{aiDescProjectDesc}}\",\n  \"component\": 1\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "url": "{{baseUrl}}/api/Projects"
               }
@@ -1608,14 +1920,30 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "Projects"],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "Projects"
+                  ],
                   "query": [
-                    { "key": "pageSize", "value": "100" },
-                    { "key": "pageNumber", "value": "0" }
+                    {
+                      "key": "pageSize",
+                      "value": "100"
+                    },
+                    {
+                      "key": "pageNumber",
+                      "value": "0"
+                    }
                   ]
                 }
               }
@@ -1655,7 +1983,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiDescProjectId}}"
               }
             },
@@ -1686,8 +2019,273 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
                 "url": "{{baseUrl}}/api/Projects/{{aiDescProjectId}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить UI при открытии проекта AI текст",
+          "description": "Тест-кейс: Создание проекта NLP и проверка UI при переходе на страницу проекта",
+          "item": [
+            {
+              "name": "SETUP - POST /api/Projects (Создать проект NLP)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var suffix = Date.now();",
+                      "pm.environment.set(\"aiUIProjectName\", \"test_nlp_\" + suffix);",
+                      "console.log(\"Creating NLP project: \" + pm.environment.get(\"aiUIProjectName\"));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Проект NLP создан\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var responseText = pm.response.text();",
+                      "pm.test(\"Response contains project ID\", function () {",
+                      "    pm.expect(responseText).to.be.a(\"string\").and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a(\"number\").and.above(0);",
+                      "    pm.environment.set(\"aiUIProjectId\", projectId);",
+                      "    console.log(\"Created NLP project with ID: \" + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiUIProjectName}}\",\n  \"description\": \"Тестовый проект NLP для проверки UI\",\n  \"component\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 1 - GET /api/Projects/{id} (Переход на страницу проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Проект найден\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Project has correct component (1 = AI текст)\", function () {",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "pm.test(\"Project name matches\", function () {",
+                      "    pm.expect(json.name).to.equal(pm.environment.get(\"aiUIProjectName\"));",
+                      "});",
+                      "",
+                      "pm.test(\"Project has valid ID\", function () {",
+                      "    pm.expect(json.id).to.equal(pm.environment.get(\"aiUIProjectId\"));",
+                      "});",
+                      "",
+                      "console.log(\"UI Check 1: Opened project page directly after creation\");",
+                      "console.log(\"Project: \" + json.name + \" (component: \" + json.component + \")\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{aiUIProjectId}}"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects (Возврат к списку проектов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Список проектов получен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Response contains result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"Created project is in the list\", function () {",
+                      "    var found = false;",
+                      "    var projectId = pm.environment.get(\"aiUIProjectId\");",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].id === projectId) {",
+                      "            found = true;",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.true;",
+                      "});",
+                      "",
+                      "console.log(\"UI Check 2: Returned to projects list, found \" + json.result.length + \" projects\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "Projects"
+                  ],
+                  "query": [
+                    {
+                      "key": "pageNumber",
+                      "value": "0"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "35"
+                    },
+                    {
+                      "key": "sorting[0].OrderProp",
+                      "value": "CreatedAt"
+                    },
+                    {
+                      "key": "sorting[0].Asc",
+                      "value": "true"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Projects/{id} (Переход на страницу проекта из списка)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Проект найден\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Project data is valid\", function () {",
+                      "    pm.expect(json.id).to.be.a(\"number\");",
+                      "    pm.expect(json.name).to.be.a(\"string\");",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "pm.test(\"Project name matches expected\", function () {",
+                      "    pm.expect(json.name).to.equal(pm.environment.get(\"aiUIProjectName\"));",
+                      "});",
+                      "",
+                      "console.log(\"UI Check 3: Opened project page from list view\");",
+                      "console.log(\"Navigation flow verified successfully\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{aiUIProjectId}}"
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Удалить проект)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get(\"aiUIProjectId\");",
+                      "",
+                      "if (projectId) {",
+                      "    pm.test(\"Status 2xx - Проект удалён\", function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log(\"Deleted NLP project: \" + projectId);",
+                      "    pm.environment.unset(\"aiUIProjectId\");",
+                      "    pm.environment.unset(\"aiUIProjectName\");",
+                      "} else {",
+                      "    pm.test(\"Skipped - нет созданного проекта\", function () {",
+                      "        pm.expect(true).to.be.true;",
+                      "    });",
+                      "}",
+                      "console.log(\"Cleanup completed\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{aiUIProjectId}}"
               }
             }
           ]
