@@ -1,0 +1,321 @@
+{
+  "info": {
+    "_postman_id": "smart-func-test-001",
+    "name": "Проекты",
+    "description": "Тесты функционала проектов. Модуль: Проекты, Категория: Функционал",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// =========================================",
+          "// АВТОНОМНАЯ АВТОРИЗАЦИЯ",
+          "// Каждый тест независим - токен обновляется автоматически",
+          "// =========================================",
+          "",
+          "// Добавляем Authorization header если токен есть",
+          "var token = pm.environment.get('token');",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Функционал",
+      "item": [
+        {
+          "name": "Авто-логин",
+          "item": [
+            {
+              "name": "POST /auth/account (Login)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Успешная авторизация', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is JSON', function () {",
+                      "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Token exists in response', function () {",
+                      "    pm.expect(json.token).to.be.a('string').and.not.empty;",
+                      "});",
+                      "",
+                      "if (json.token) {",
+                      "    pm.environment.set('token', json.token);",
+                      "    console.log('Token saved: ' + json.token.substring(0, 30) + '...');",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "X-Client-Type", "value": "Browser" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить поиск проекта",
+          "description": "Тест-кейс: Проверка поиска проектов по частичному и полному названию",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Projects (Получить все проекты)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('At least one project exists', function () {",
+                      "    pm.expect(json.result.length).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "// Находим проект 'Паспорт' для теста поиска",
+                      "var passportProject = null;",
+                      "for (var i = 0; i < json.result.length; i++) {",
+                      "    if (json.result[i].name && json.result[i].name.indexOf('Паспорт') !== -1) {",
+                      "        passportProject = json.result[i];",
+                      "        break;",
+                      "    }",
+                      "}",
+                      "",
+                      "if (passportProject) {",
+                      "    pm.environment.set('searchProjectName', passportProject.name);",
+                      "    pm.environment.set('searchProjectId', passportProject.id);",
+                      "    console.log('Found project for search test: ' + passportProject.name + ' (ID: ' + passportProject.id + ')');",
+                      "} else {",
+                      "    // Используем первый проект если 'Паспорт' не найден",
+                      "    pm.environment.set('searchProjectName', json.result[0].name);",
+                      "    pm.environment.set('searchProjectId', json.result[0].id);",
+                      "    console.log('Using first project for search test: ' + json.result[0].name);",
+                      "}",
+                      "",
+                      "pm.environment.set('allProjectsCount', json.result.length);",
+                      "console.log('Total projects: ' + json.result.length);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects?name=Пасп (Поиск по частичному названию)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Поиск выполнен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Search returned at least one result', function () {",
+                      "    pm.expect(json.result.length).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "pm.test('Search result contains expected project', function () {",
+                      "    var found = false;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].name && json.result[i].name.indexOf('Пасп') !== -1) {",
+                      "            found = true;",
+                      "            console.log('Found project by partial search: ' + json.result[i].name);",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.true;",
+                      "});",
+                      "",
+                      "console.log('Partial search \"Пасп\" returned ' + json.result.length + ' results');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&name=%D0%9F%D0%B0%D1%81%D0%BF&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "name", "value": "Пасп" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Projects?name=Паспорт (Поиск по полному названию)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Поиск выполнен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Search returned at least one result', function () {",
+                      "    pm.expect(json.result.length).to.be.at.least(1);",
+                      "});",
+                      "",
+                      "pm.test('Search result contains exact project name', function () {",
+                      "    var found = false;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].name === 'Паспорт') {",
+                      "            found = true;",
+                      "            console.log('Found exact project: ' + json.result[i].name + ' (ID: ' + json.result[i].id + ')');",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.true;",
+                      "});",
+                      "",
+                      "console.log('Full search \"Паспорт\" returned ' + json.result.length + ' results');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&name=%D0%9F%D0%B0%D1%81%D0%BF%D0%BE%D1%80%D1%82&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "name", "value": "Паспорт" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/Projects?name=Несуществующий (Поиск несуществующего)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Поиск выполнен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Search returned no results for non-existent name', function () {",
+                      "    pm.expect(json.result.length).to.equal(0);",
+                      "});",
+                      "",
+                      "console.log('Non-existent search returned ' + json.result.length + ' results (expected 0)');",
+                      "",
+                      "// Cleanup",
+                      "pm.environment.unset('searchProjectName');",
+                      "pm.environment.unset('searchProjectId');",
+                      "pm.environment.unset('allProjectsCount');",
+                      "console.log('Cleanup completed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&name=%D0%9D%D0%B5%D1%81%D1%83%D1%89%D0%B5%D1%81%D1%82%D0%B2%D1%83%D1%8E%D1%89%D0%B8%D0%B9&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "name", "value": "Несуществующий" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

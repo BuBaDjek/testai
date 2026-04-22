@@ -20,12 +20,14 @@ declare -a MODULES=(
     "auth/auth"
     "projects/smart-ocr"
     "projects/smart-ai"
+    "projects/smart-func"
 )
 
 declare -a MODULE_NAMES=(
     "00 - Авторизация"
     "01 - Проекты → Умный OCR"
     "02 - Проекты → AI Текст"
+    "03 - Проекты → Функционал"
 )
 
 show_help() {
@@ -179,9 +181,13 @@ run_single() {
             module_path="projects/smart-ai"
             module_name="02 - Проекты → AI Текст"
             ;;
+        func)
+            module_path="projects/smart-func"
+            module_name="03 - Проекты → Функционал"
+            ;;
         *)
             echo "❌ Неизвестный модуль: $module_key"
-            echo "Доступные модули: auth, ocr, ai"
+            echo "Доступные модули: auth, ocr, ai, func"
             exit 1
             ;;
     esac
