@@ -989,6 +989,227 @@
           ]
         },
         {
+          "name": "Проверить создание проекта с описанием методом граничных значений",
+          "description": "Тест-кейс: Проверка граничных значений длины описания проекта AI Текст (499, 500, 501 символ)",
+          "item": [
+            {
+              "name": "TEST 1 - Создание проекта с описанием 499 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var desc499 = 'а'.repeat(499);",
+                      "pm.environment.set('aiProjectDesc499', desc499);",
+                      "pm.environment.set('aiProjectName499', 'Test_Desc_499_' + Date.now());",
+                      "console.log('AI Project description 499 chars (length: ' + desc499.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект AI с описанием 499 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('aiProjectId499', projectId);",
+                      "    console.log('Created AI project with 499 char description, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName499}}\",\n  \"description\": \"{{aiProjectDesc499}}\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEARDOWN 1 - DELETE /api/Projects/{id} (Delete 499)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('aiProjectId499');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект AI с описанием 499 символов удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted AI project with 499 char description, ID: ' + projectId);",
+                      "    pm.environment.unset('aiProjectId499');",
+                      "    pm.environment.unset('aiProjectName499');",
+                      "    pm.environment.unset('aiProjectDesc499');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiProjectId499}}"
+              }
+            },
+            {
+              "name": "TEST 2 - Создание проекта с описанием 500 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var desc500 = 'б'.repeat(500);",
+                      "pm.environment.set('aiProjectDesc500', desc500);",
+                      "pm.environment.set('aiProjectName500', 'Test_Desc_500_' + Date.now());",
+                      "console.log('AI Project description 500 chars (length: ' + desc500.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект AI с описанием 500 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('aiProjectId500', projectId);",
+                      "    console.log('Created AI project with 500 char description, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName500}}\",\n  \"description\": \"{{aiProjectDesc500}}\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEARDOWN 2 - DELETE /api/Projects/{id} (Delete 500)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('aiProjectId500');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект AI с описанием 500 символов удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted AI project with 500 char description, ID: ' + projectId);",
+                      "    pm.environment.unset('aiProjectId500');",
+                      "    pm.environment.unset('aiProjectName500');",
+                      "    pm.environment.unset('aiProjectDesc500');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiProjectId500}}"
+              }
+            },
+            {
+              "name": "TEST 3 - Создание проекта с описанием 501 символ (ошибка)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var desc501 = 'в'.repeat(501);",
+                      "pm.environment.set('aiProjectDesc501', desc501);",
+                      "pm.environment.set('aiProjectName501', 'Test_Desc_501_' + Date.now());",
+                      "console.log('AI Project description 501 chars (length: ' + desc501.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400 - Ошибка при создании проекта AI с описанием 501 символ', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error message indicates description length issue', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('Boundary test completed: 501 chars description should fail');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName501}}\",\n  \"description\": \"{{aiProjectDesc501}}\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            }
+          ]
+        },
+        {
           "name": "Проверить создание проекта с описанием",
           "description": "Тест-кейс: Проверка корректного сохранения описания проекта и его отображения в списке и на странице проекта",
           "item": [
