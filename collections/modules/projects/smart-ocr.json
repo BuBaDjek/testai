@@ -2121,6 +2121,393 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить навигацию по вкладкам проекта OCR",
+          "description": "Тест-кейс: Проверка доступности вкладок проекта (Датасет, Обучение, Использование, Тестирование)",
+          "item": [
+            {
+              "name": "STEP 1 - POST /api/Projects (Создание проекта)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var timestamp = Date.now();",
+                      "var projectName = 'OCR_Nav_Test_' + timestamp;",
+                      "pm.environment.set('ocrNavProjectName', projectName);",
+                      "console.log('Creating OCR project for navigation test: ' + projectName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('ocrNavProjectId', projectId);",
+                      "    console.log('Created OCR project for navigation, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{ocrNavProjectName}}\",\n  \"description\": \"Тест навигации по вкладкам OCR\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects/{id} (Проверка проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('Project component is OCR (0)', function () {",
+                      "    pm.expect(json.component).to.equal(0);",
+                      "});",
+                      "",
+                      "console.log('Project verified: ID=' + pm.environment.get('ocrNavProjectId'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{ocrNavProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Датасет - GET /api/MarkingSchemes/project/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Схемы разметки доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('MarkingSchemes response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "if (json.result && json.result.length > 0) {",
+                      "    pm.environment.set('ocrNavMarkingSchemeId', json.result[0].id);",
+                      "    console.log('Found marking scheme ID: ' + json.result[0].id);",
+                      "}",
+                      "",
+                      "console.log('TAB Датасет: MarkingSchemes endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/MarkingSchemes/project/{{ocrNavProjectId}}?parentless=true"
+              }
+            },
+            {
+              "name": "TAB: Датасет - GET /api/ProjectDataImgs/project/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Изображения датасета доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('ProjectDataImgs response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "});",
+                      "",
+                      "console.log('TAB Датасет: ProjectDataImgs endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/ProjectDataImgs/project/{{ocrNavProjectId}}?pageNumber=0&pageSize=20&dataSetType=Train"
+              }
+            },
+            {
+              "name": "TAB: Обучение - GET /api/ModelTemplates",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Шаблоны моделей доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('ModelTemplates response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result || json).to.exist;",
+                      "});",
+                      "",
+                      "console.log('TAB Обучение: ModelTemplates endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/ModelTemplates?component=SmartOCR"
+              }
+            },
+            {
+              "name": "TAB: Обучение - GET /api/TrainProcessTemplates/project/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Шаблоны обучения доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('TrainProcessTemplates response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "});",
+                      "",
+                      "console.log('TAB Обучение: TrainProcessTemplates endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/TrainProcessTemplates/project/{{ocrNavProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Обучение - GET /api/Projects/{id}/DataSet/Balance",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Баланс датасета доступен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log('TAB Обучение: DataSet/Balance endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{ocrNavProjectId}}/DataSet/Balance"
+              }
+            },
+            {
+              "name": "TAB: Использование - GET /api/InferenceProcessTemplates/project/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Шаблоны инференса доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('InferenceProcessTemplates response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "});",
+                      "",
+                      "console.log('TAB Использование: InferenceProcessTemplates endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/InferenceProcessTemplates/project/{{ocrNavProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Использование - GET /api/ModelTypes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Типы моделей доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('ModelTypes response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result || json).to.exist;",
+                      "});",
+                      "",
+                      "console.log('TAB Использование: ModelTypes endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/ModelTypes?component=SmartOCR&SmartOCRModelUsage=0"
+              }
+            },
+            {
+              "name": "TAB: Использование - GET /api/models/project/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Модели проекта доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log('TAB Использование: models/project endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/models/project/{{ocrNavProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Тестирование - GET /api/ModelTypes?activeProjectId={id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Типы моделей для тестирования доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('ModelTypes for testing response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result || json).to.exist;",
+                      "});",
+                      "",
+                      "console.log('TAB Тестирование: ModelTypes endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/ModelTypes?activeProjectId={{ocrNavProjectId}}"
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('ocrNavProjectId');",
+                      "",
+                      "pm.test('Status 2xx - Проект удалён', function () {",
+                      "    pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "});",
+                      "",
+                      "console.log('Deleted OCR navigation test project ID: ' + projectId);",
+                      "",
+                      "pm.environment.unset('ocrNavProjectId');",
+                      "pm.environment.unset('ocrNavProjectName');",
+                      "pm.environment.unset('ocrNavMarkingSchemeId');",
+                      "console.log('Cleanup completed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{ocrNavProjectId}}"
+              }
+            }
+          ]
         }
       ]
     }
