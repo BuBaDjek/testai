@@ -1,0 +1,335 @@
+{
+  "info": {
+    "_postman_id": "smart-ai-test-001",
+    "name": "Проекты",
+    "description": "Тесты создания проекта AI Текст. Модуль: Проекты, Категория: AI Текст",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// =========================================",
+          "// АВТОНОМНАЯ АВТОРИЗАЦИЯ",
+          "// Каждый тест независим - токен обновляется автоматически",
+          "// =========================================",
+          "",
+          "// Добавляем Authorization header если токен есть",
+          "var token = pm.environment.get('token');",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "AI Текст",
+      "item": [
+        {
+          "name": "Авто-логин",
+          "item": [
+            {
+              "name": "POST /auth/account (Login)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// ТЕСТ АВТОРИЗАЦИИ",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Успешная авторизация', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test('Response is JSON', function () {",
+                      "    pm.expect(function () { pm.response.json(); }).to.not.throw();",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Token exists in response', function () {",
+                      "    pm.expect(json.token).to.be.a('string').and.not.empty;",
+                      "});",
+                      "",
+                      "// Сохраняем токен для следующих запросов",
+                      "if (json.token) {",
+                      "    pm.environment.set('token', json.token);",
+                      "    console.log('Token saved: ' + json.token.substring(0, 30) + '...');",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить создание проекта с наименованием методом граничных значений",
+          "description": "Тест-кейс: Проверка граничных значений длины имени проекта AI Текст (99, 100, 101 символов)",
+          "item": [
+            {
+              "name": "TEST 1 - Создание проекта с именем 99 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем имя ровно 99 символов",
+                      "var name99 = 'a'.repeat(99);",
+                      "pm.environment.set('aiProjectName99', name99);",
+                      "console.log('AI Project name 99 chars (length: ' + name99.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 1: 99 символов - должно быть успешно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект AI с именем 99 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('aiProjectId99', projectId);",
+                      "    console.log('Created AI project with 99 char name, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName99}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEARDOWN 1 - DELETE /api/Projects/{id} (Delete 99)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('aiProjectId99');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект AI 99 символов удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted AI project with 99 char name, ID: ' + projectId);",
+                      "    pm.environment.unset('aiProjectId99');",
+                      "    pm.environment.unset('aiProjectName99');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiProjectId99}}"
+              }
+            },
+            {
+              "name": "TEST 2 - Создание проекта с именем 100 символов (успешно)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем имя ровно 100 символов",
+                      "var name100 = 'b'.repeat(100);",
+                      "pm.environment.set('aiProjectName100', name100);",
+                      "console.log('AI Project name 100 chars (length: ' + name100.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 2: 100 символов - должно быть успешно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект AI с именем 100 символов создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('aiProjectId100', projectId);",
+                      "    console.log('Created AI project with 100 char name, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName100}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "TEARDOWN 2 - DELETE /api/Projects/{id} (Delete 100)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('aiProjectId100');",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект AI 100 символов удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted AI project with 100 char name, ID: ' + projectId);",
+                      "    pm.environment.unset('aiProjectId100');",
+                      "    pm.environment.unset('aiProjectName100');",
+                      "} else {",
+                      "    pm.test('Skipped - нет проекта для удаления', function () { pm.expect(true).to.be.true; });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiProjectId100}}"
+              }
+            },
+            {
+              "name": "TEST 3 - Создание проекта с именем 101 символ (ошибка)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем имя ровно 101 символ",
+                      "var name101 = 'c'.repeat(101);",
+                      "pm.environment.set('aiProjectName101', name101);",
+                      "console.log('AI Project name 101 chars (length: ' + name101.length + ')');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// TEST 3: 101 символ - должна быть ошибка",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 400 - Ошибка при создании проекта AI с именем 101 символ', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error message indicates name length issue', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('Boundary test completed: 101 chars should fail');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiProjectName101}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

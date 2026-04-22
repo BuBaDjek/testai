@@ -8,6 +8,7 @@
 #   ./run-tests.sh simple   - запустить все тесты без отчёта
 #   ./run-tests.sh auth     - запустить только тесты авторизации
 #   ./run-tests.sh ocr      - запустить только тесты Умный OCR
+#   ./run-tests.sh ai       - запустить только тесты AI Текст
 #   ./run-tests.sh help     - показать справку
 
 ENV="collections/AuthTest.postman_environment.json"
@@ -18,11 +19,13 @@ DELAY=1000
 declare -a MODULES=(
     "auth/auth"
     "projects/smart-ocr"
+    "projects/smart-ai"
 )
 
 declare -a MODULE_NAMES=(
     "00 - Авторизация"
     "01 - Проекты → Умный OCR"
+    "02 - Проекты → AI Текст"
 )
 
 show_help() {
@@ -172,9 +175,13 @@ run_single() {
             module_path="projects/smart-ocr"
             module_name="01 - Проекты → Умный OCR"
             ;;
+        ai)
+            module_path="projects/smart-ai"
+            module_name="02 - Проекты → AI Текст"
+            ;;
         *)
             echo "❌ Неизвестный модуль: $module_key"
-            echo "Доступные модули: auth, ocr"
+            echo "Доступные модули: auth, ocr, ai"
             exit 1
             ;;
     esac
@@ -230,6 +237,11 @@ fi
 
 if [ "$1" = "ocr" ]; then
     run_single "ocr" "simple"
+    exit $?
+fi
+
+if [ "$1" = "ai" ]; then
+    run_single "ai" "simple"
     exit $?
 fi
 
