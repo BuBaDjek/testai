@@ -450,6 +450,318 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить фильтрацию по типу проекта",
+          "description": "Тест-кейс: Создание проекта NLP и проверка фильтрации по типу (Умный OCR, AI текст, AI Агенты)",
+          "item": [
+            {
+              "name": "SETUP - POST /api/Projects (Создать проект NLP)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var suffix = Date.now();",
+                      "pm.environment.set('nlpProjectName', 'testnlp_' + suffix);",
+                      "console.log('Creating NLP project: ' + pm.environment.get('nlpProjectName'));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект NLP создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('nlpProjectId', projectId);",
+                      "    console.log('Created NLP project with ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{nlpProjectName}}\",\n  \"description\": \"Тестовый проект NLP для проверки фильтрации\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "VERIFY - GET /api/Projects/{id} (Проверить созданный проект)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Project component is 1 (NLP/AI текст)', function () {",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "pm.test('Project name matches', function () {",
+                      "    pm.expect(json.name).to.equal(pm.environment.get('nlpProjectName'));",
+                      "});",
+                      "",
+                      "console.log('Verified NLP project: ' + json.name + ' (component: ' + json.component + ')');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
+              }
+            },
+            {
+              "name": "TEST 1 - GET /api/Projects?component=0 (Фильтр: Умный OCR)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('All projects have component=0 (Умный OCR)', function () {",
+                      "    var allCorrect = true;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].component !== 0) {",
+                      "            allCorrect = false;",
+                      "            console.log('ERROR: Project ' + json.result[i].name + ' has component=' + json.result[i].component + ' (expected 0)');",
+                      "        }",
+                      "    }",
+                      "    pm.expect(allCorrect).to.be.true;",
+                      "});",
+                      "",
+                      "pm.test('NLP project is NOT in the list', function () {",
+                      "    var nlpProjectId = pm.environment.get('nlpProjectId');",
+                      "    var found = false;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].id === nlpProjectId) {",
+                      "            found = true;",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.false;",
+                      "});",
+                      "",
+                      "console.log('Умный OCR filter returned ' + json.result.length + ' projects');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true&component.value=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" },
+                    { "key": "component.value", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEST 2 - GET /api/Projects?component=1 (Фильтр: AI текст)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('All projects have component=1 (AI текст)', function () {",
+                      "    var allCorrect = true;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].component !== 1) {",
+                      "            allCorrect = false;",
+                      "            console.log('ERROR: Project ' + json.result[i].name + ' has component=' + json.result[i].component + ' (expected 1)');",
+                      "        }",
+                      "    }",
+                      "    pm.expect(allCorrect).to.be.true;",
+                      "});",
+                      "",
+                      "pm.test('NLP project IS in the list', function () {",
+                      "    var nlpProjectId = pm.environment.get('nlpProjectId');",
+                      "    var found = false;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].id === nlpProjectId) {",
+                      "            found = true;",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.true;",
+                      "});",
+                      "",
+                      "console.log('AI текст filter returned ' + json.result.length + ' projects');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true&component.value=1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" },
+                    { "key": "component.value", "value": "1" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEST 3 - GET /api/Projects?component=2 (Фильтр: AI Агенты)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('All projects have component=2 (AI Агенты)', function () {",
+                      "    var allCorrect = true;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].component !== 2) {",
+                      "            allCorrect = false;",
+                      "            console.log('ERROR: Project ' + json.result[i].name + ' has component=' + json.result[i].component + ' (expected 2)');",
+                      "        }",
+                      "    }",
+                      "    pm.expect(allCorrect).to.be.true;",
+                      "});",
+                      "",
+                      "pm.test('NLP project is NOT in the list', function () {",
+                      "    var nlpProjectId = pm.environment.get('nlpProjectId');",
+                      "    var found = false;",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].id === nlpProjectId) {",
+                      "            found = true;",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.false;",
+                      "});",
+                      "",
+                      "console.log('AI Агенты filter returned ' + json.result.length + ' projects');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true&component.value=2",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" },
+                    { "key": "component.value", "value": "2" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Удалить проект NLP)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('nlpProjectId');",
+                      "",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted NLP project: ' + projectId);",
+                      "    pm.environment.unset('nlpProjectId');",
+                      "    pm.environment.unset('nlpProjectName');",
+                      "} else {",
+                      "    pm.test('Skipped - нет созданного проекта', function () {",
+                      "        pm.expect(true).to.be.true;",
+                      "    });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
+              }
+            }
+          ]
         }
       ]
     }
