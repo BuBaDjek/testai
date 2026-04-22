@@ -2508,6 +2508,219 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить UI при открытии проекта Умный OCR",
+          "description": "Тест-кейс: Создание проекта и проверка UI при переходе на страницу проекта",
+          "item": [
+            {
+              "name": "SETUP - POST /api/Projects (Создать проект Умный OCR)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var suffix = Date.now();",
+                      "pm.environment.set('ocrUIProjectName', 'test_ocr_' + suffix);",
+                      "console.log('Creating OCR project: ' + pm.environment.get('ocrUIProjectName'));"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var responseText = pm.response.text();",
+                      "pm.test('Response contains project ID', function () {",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('ocrUIProjectId', projectId);",
+                      "    console.log('Created OCR project with ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{ocrUIProjectName}}\",\n  \"description\": \"Тестовый проект для проверки UI\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 1 - GET /api/Projects/{id} (Переход на страницу проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Project has correct component (0 = Умный OCR)', function () {",
+                      "    pm.expect(json.component).to.equal(0);",
+                      "});",
+                      "",
+                      "pm.test('Project name matches', function () {",
+                      "    pm.expect(json.name).to.equal(pm.environment.get('ocrUIProjectName'));",
+                      "});",
+                      "",
+                      "pm.test('Project has valid ID', function () {",
+                      "    pm.expect(json.id).to.equal(pm.environment.get('ocrUIProjectId'));",
+                      "});",
+                      "",
+                      "console.log('UI Check 1: Opened project page directly after creation');",
+                      "console.log('Project: ' + json.name + ' (component: ' + json.component + ')');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{ocrUIProjectId}}"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects (Возврат к списку проектов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response contains result array', function () {",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test('Created project is in the list', function () {",
+                      "    var found = false;",
+                      "    var projectId = pm.environment.get('ocrUIProjectId');",
+                      "    for (var i = 0; i < json.result.length; i++) {",
+                      "        if (json.result[i].id === projectId) {",
+                      "            found = true;",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    pm.expect(found).to.be.true;",
+                      "});",
+                      "",
+                      "console.log('UI Check 2: Returned to projects list, found ' + json.result.length + ' projects');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageNumber", "value": "0" },
+                    { "key": "pageSize", "value": "35" },
+                    { "key": "sorting[0].OrderProp", "value": "CreatedAt" },
+                    { "key": "sorting[0].Asc", "value": "true" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Projects/{id} (Переход на страницу проекта из списка)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Project data is valid', function () {",
+                      "    pm.expect(json.id).to.be.a('number');",
+                      "    pm.expect(json.name).to.be.a('string');",
+                      "    pm.expect(json.component).to.equal(0);",
+                      "});",
+                      "",
+                      "pm.test('Project name matches expected', function () {",
+                      "    pm.expect(json.name).to.equal(pm.environment.get('ocrUIProjectName'));",
+                      "});",
+                      "",
+                      "console.log('UI Check 3: Opened project page from list view');",
+                      "console.log('Navigation flow verified successfully');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{ocrUIProjectId}}"
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Удалить проект)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('ocrUIProjectId');",
+                      "",
+                      "if (projectId) {",
+                      "    pm.test('Status 2xx - Проект удалён', function () {",
+                      "        pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "    });",
+                      "    console.log('Deleted OCR UI test project: ' + projectId);",
+                      "    pm.environment.unset('ocrUIProjectId');",
+                      "    pm.environment.unset('ocrUIProjectName');",
+                      "} else {",
+                      "    pm.test('Skipped - нет созданного проекта', function () {",
+                      "        pm.expect(true).to.be.true;",
+                      "    });",
+                      "}",
+                      "console.log('Cleanup completed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{ocrUIProjectId}}"
+              }
+            }
+          ]
         }
       ]
     }
