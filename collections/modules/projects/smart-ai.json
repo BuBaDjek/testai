@@ -40,10 +40,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// ТЕСТ АВТОРИЗАЦИИ",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 200 - Успешная авторизация', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
@@ -58,7 +54,6 @@
                       "    pm.expect(json.token).to.be.a('string').and.not.empty;",
                       "});",
                       "",
-                      "// Сохраняем токен для следующих запросов",
                       "if (json.token) {",
                       "    pm.environment.set('token', json.token);",
                       "    console.log('Token saved: ' + json.token.substring(0, 30) + '...');",
@@ -70,27 +65,14 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  {
-                    "key": "Accept",
-                    "value": "application/json, text/plain, */*"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-Client-Type",
-                    "value": "Browser"
-                  }
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "X-Client-Type", "value": "Browser" }
                 ],
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
+                  "options": { "raw": { "language": "json" } }
                 },
                 "url": "{{baseUrl}}/auth/account"
               }
@@ -109,7 +91,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Генерируем имя ровно 99 символов",
                       "var name99 = 'a'.repeat(99);",
                       "pm.environment.set('aiProjectName99', name99);",
                       "console.log('AI Project name 99 chars (length: ' + name99.length + ')');"
@@ -121,10 +102,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// TEST 1: 99 символов - должно быть успешно",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 201 - Проект AI с именем 99 символов создан', function () {",
                       "    pm.response.to.have.status(201);",
                       "});",
@@ -192,7 +169,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Генерируем имя ровно 100 символов",
                       "var name100 = 'b'.repeat(100);",
                       "pm.environment.set('aiProjectName100', name100);",
                       "console.log('AI Project name 100 chars (length: ' + name100.length + ')');"
@@ -204,10 +180,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// TEST 2: 100 символов - должно быть успешно",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 201 - Проект AI с именем 100 символов создан', function () {",
                       "    pm.response.to.have.status(201);",
                       "});",
@@ -275,7 +247,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Генерируем имя ровно 101 символ",
                       "var name101 = 'c'.repeat(101);",
                       "pm.environment.set('aiProjectName101', name101);",
                       "console.log('AI Project name 101 chars (length: ' + name101.length + ')');"
@@ -287,10 +258,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// TEST 3: 101 символ - должна быть ошибка",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 400 - Ошибка при создании проекта AI с именем 101 символ', function () {",
                       "    pm.response.to.have.status(400);",
                       "});",
@@ -333,18 +300,13 @@
           "description": "Тест-кейс: Проверка ошибки при создании проекта AI Текст с уже существующим именем",
           "item": [
             {
-              "name": "STEP 1 - GET /api/Projects (Получить список проектов до создания)",
+              "name": "STEP 1 - GET /api/Projects (Получить список проектов)",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 1: Получаем список проектов и запоминаем количество",
-                      "// Имя проекта должно быть уникальным ВСЕГДА, независимо от типа (component)",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 200 - Список проектов получен', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
@@ -356,39 +318,30 @@
                       "    pm.expect(json.result).to.be.an('array');",
                       "});",
                       "",
-                      "// Сохраняем количество проектов до создания",
                       "var projectCount = json.result ? json.result.length : 0;",
                       "pm.environment.set('aiProjectCountBefore', projectCount);",
                       "",
-                      "// Берём имя ЛЮБОГО существующего проекта (имя уникально глобально)",
                       "var allProjects = json.result || [];",
                       "",
                       "console.log('Total projects before: ' + projectCount);",
-                      "console.log('All projects count: ' + allProjects.length);",
                       "",
                       "if (allProjects.length > 0) {",
-                      "    // Выбираем первый проект с валидным именем (без пробелов и спецсимволов)",
                       "    var validName = null;",
                       "    for (var i = 0; i < allProjects.length; i++) {",
                       "        var proj = allProjects[i];",
-                      "        // Проверяем что имя подходит под regex: буквы, цифры, дефис, подчёркивание, точка",
                       "        if (proj.name && /^[а-яА-Яa-zA-Z0-9@\\\\_\\-\\.]+$/.test(proj.name)) {",
                       "            validName = proj.name;",
                       "            console.log('Found valid existing project name: ' + validName);",
                       "            break;",
                       "        }",
                       "    }",
-                      "    ",
                       "    if (validName) {",
                       "        pm.environment.set('aiExistingProjectName', validName);",
-                      "        console.log('Will use existing project name: ' + validName);",
                       "    } else {",
-                      "        // Если нет валидного имени, используем первое и логируем",
                       "        pm.environment.set('aiExistingProjectName', allProjects[0].name);",
-                      "        console.log('Using first project name (may have invalid chars): ' + allProjects[0].name);",
                       "    }",
                       "} else {",
-                      "    console.log('No existing projects found - test may not work correctly');",
+                      "    console.log('No existing projects found');",
                       "}"
                     ]
                   }
@@ -396,9 +349,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
                   "host": ["{{baseUrl}}"],
@@ -411,17 +362,16 @@
               }
             },
             {
-              "name": "STEP 2 - POST /api/Projects (Попытка создать проект с существующим именем)",
+              "name": "STEP 2 - POST /api/Projects (Попытка создать дубликат)",
               "event": [
                 {
                   "listen": "prerequest",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Используем имя существующего проекта, если есть",
                       "var existingName = pm.environment.get('aiExistingProjectName');",
                       "if (!existingName) {",
-                      "    existingName = 'Тестовый проект AI'; // Fallback имя",
+                      "    existingName = 'Тестовый проект AI';",
                       "}",
                       "pm.environment.set('aiDuplicateProjectName', existingName);",
                       "console.log('Attempting to create project with existing name: ' + existingName);"
@@ -433,10 +383,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 2: Проверяем что создание дубликата возвращает ошибку",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 400 - Ошибка при создании проекта с неуникальным именем', function () {",
                       "    pm.response.to.have.status(400);",
                       "});",
@@ -446,16 +392,13 @@
                       "        var json = pm.response.json();",
                       "        console.log('Error response: ' + JSON.stringify(json));",
                       "        pm.expect(json).to.be.an('object');",
-                      "        // Проверяем наличие сообщения об ошибке",
-                      "        pm.expect(json.message || json.error || json.title || JSON.stringify(json)).to.be.a('string');",
                       "    } catch (e) {",
                       "        var text = pm.response.text();",
-                      "        console.log('Error response text: ' + text);",
                       "        pm.expect(text).to.be.a('string').and.not.empty;",
                       "    }",
                       "});",
                       "",
-                      "console.log('Duplicate project creation correctly rejected with 400 error');"
+                      "console.log('Duplicate project creation correctly rejected');"
                     ]
                   }
                 }
@@ -482,10 +425,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 3: Проверяем что количество проектов не изменилось",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 200 - Список проектов получен', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
@@ -495,34 +434,21 @@
                       "pm.test('Project count unchanged after failed creation', function () {",
                       "    var countBefore = pm.environment.get('aiProjectCountBefore');",
                       "    var countAfter = json.result ? json.result.length : 0;",
-                      "    ",
-                      "    console.log('Projects before: ' + countBefore);",
-                      "    console.log('Projects after: ' + countAfter);",
-                      "    ",
                       "    pm.expect(countAfter).to.equal(parseInt(countBefore));",
                       "});",
                       "",
-                      "pm.test('Response structure is valid', function () {",
-                      "    pm.expect(json).to.be.an('object');",
-                      "    pm.expect(json.result).to.be.an('array');",
-                      "});",
-                      "",
-                      "// Очистка переменных",
                       "pm.environment.unset('aiProjectCountBefore');",
-                      "pm.environment.unset('aiExistingProjects');",
                       "pm.environment.unset('aiExistingProjectName');",
                       "pm.environment.unset('aiDuplicateProjectName');",
                       "",
-                      "console.log('Cleanup completed - all test variables removed');"
+                      "console.log('Cleanup completed');"
                     ]
                   }
                 }
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": {
                   "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
                   "host": ["{{baseUrl}}"],
@@ -538,7 +464,7 @@
         },
         {
           "name": "Проверить возможность создания, редактирования, удаления проекта",
-          "description": "Тест-кейс: Создание проекта AI Текст (Задачи NLP), редактирование и удаление",
+          "description": "Тест-кейс: Создание проекта AI Текст, редактирование и удаление",
           "item": [
             {
               "name": "STEP 1 - POST /api/Projects (Создание проекта)",
@@ -548,7 +474,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Генерируем уникальное имя проекта",
                       "var timestamp = Date.now();",
                       "var projectName = 'NLP_Test_' + timestamp;",
                       "pm.environment.set('nlpProjectName', projectName);",
@@ -562,10 +487,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 1: Создание проекта",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 201 - Проект NLP создан', function () {",
                       "    pm.response.to.have.status(201);",
                       "});",
@@ -604,10 +525,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 2: Проверка что проект создан корректно",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 200 - Проект найден', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
@@ -628,28 +545,25 @@
                       "    pm.expect(json.component).to.equal(1);",
                       "});",
                       "",
-                      "console.log('Project verified: name=' + json.name + ', component=' + json.component);"
+                      "console.log('Project verified: name=' + json.name);"
                     ]
                   }
                 }
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
             },
             {
-              "name": "STEP 3 - PUT /api/Projects/{id} (Редактирование проекта)",
+              "name": "STEP 3 - PUT /api/Projects/{id} (Редактирование)",
               "event": [
                 {
                   "listen": "prerequest",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// Новые данные для редактирования",
                       "var timestamp = Date.now();",
                       "var newName = 'NLP_Edited_' + timestamp;",
                       "var newDesc = 'Отредактированный проект Задачи NLP';",
@@ -664,15 +578,10 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 3: Редактирование проекта",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 200 - Проект обновлён', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
                       "",
-                      "// PUT может вернуть пустой ответ, проверяем статус",
                       "var responseText = pm.response.text();",
                       "console.log('PUT response: ' + responseText);",
                       "",
@@ -681,11 +590,9 @@
                       "        var json = JSON.parse(responseText);",
                       "        var newName = pm.environment.get('nlpEditedName');",
                       "        var newDesc = pm.environment.get('nlpEditedDesc');",
-                      "        ",
                       "        pm.test('Updated name matches', function () {",
                       "            pm.expect(json.name).to.equal(newName);",
                       "        });",
-                      "        ",
                       "        pm.test('Updated description matches', function () {",
                       "            pm.expect(json.description).to.equal(newDesc);",
                       "        });",
@@ -722,10 +629,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 4: Проверка что изменения применились",
-                      "// =========================================",
-                      "",
                       "pm.test('Status 200 - Проект найден', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
@@ -753,9 +656,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
             },
@@ -767,10 +668,6 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "// =========================================",
-                      "// STEP 5: Удаление проекта (TEARDOWN)",
-                      "// =========================================",
-                      "",
                       "var projectId = pm.environment.get('nlpProjectId');",
                       "",
                       "pm.test('Status 2xx - Проект удалён', function () {",
@@ -779,23 +676,20 @@
                       "",
                       "console.log('Deleted NLP project ID: ' + projectId);",
                       "",
-                      "// Очистка переменных",
                       "pm.environment.unset('nlpProjectId');",
                       "pm.environment.unset('nlpProjectName');",
                       "pm.environment.unset('nlpProjectDesc');",
                       "pm.environment.unset('nlpEditedName');",
                       "pm.environment.unset('nlpEditedDesc');",
                       "",
-                      "console.log('Cleanup completed - all test variables removed');"
+                      "console.log('Cleanup completed');"
                     ]
                   }
                 }
               ],
               "request": {
                 "method": "DELETE",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
               }
             }
@@ -879,9 +773,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/Projects/{{navProjectId}}"
               }
             },
@@ -904,9 +796,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/enums/NlpEngines"
               }
             },
@@ -935,9 +825,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/ModelTemplates?component=NLP&allowedForProjectId={{navProjectId}}"
               }
             },
@@ -966,9 +854,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/NlpTask/project/{{navProjectId}}"
               }
             },
@@ -991,9 +877,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/NlpContextFiles?IsPredefined=true"
               }
             },
@@ -1016,9 +900,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/NlpSystemMessages?IsPredefined=true"
               }
             },
@@ -1041,9 +923,7 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/InferenceProcesses/agents/llm?projectId={{navProjectId}}"
               }
             },
@@ -1055,7 +935,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Status 200 - Типы моделей доступны', function () {",
+                      "pm.test('Status 200 - Типы моделей для тестирования доступны', function () {",
                       "    pm.response.to.have.status(200);",
                       "});",
                       "",
@@ -1072,14 +952,12 @@
               ],
               "request": {
                 "method": "GET",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/ModelTypes?component=NLP&ActiveProjectId={{navProjectId}}"
               }
             },
             {
-              "name": "TEARDOWN - DELETE /api/Projects/{id}",
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Удаление проекта)",
               "event": [
                 {
                   "listen": "test",
@@ -1096,6 +974,7 @@
                       "",
                       "pm.environment.unset('navProjectId');",
                       "pm.environment.unset('navProjectName');",
+                      "",
                       "console.log('Cleanup completed');"
                     ]
                   }
@@ -1103,16 +982,206 @@
               ],
               "request": {
                 "method": "DELETE",
-                "header": [
-                  { "key": "Accept", "value": "application/json, text/plain, */*" }
-                ],
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
                 "url": "{{baseUrl}}/api/Projects/{{navProjectId}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить создание проекта с описанием",
+          "description": "Тест-кейс: Проверка корректного сохранения описания проекта и его отображения в списке и на странице проекта",
+          "item": [
+            {
+              "name": "STEP 1 - POST /api/Projects (Создание проекта с описанием)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var timestamp = Date.now();",
+                      "var projectName = 'AI_Desc_Test_' + timestamp;",
+                      "var projectDesc = 'Тестовое описание проекта AI Текст для проверки отображения описания в списке и на странице проекта';",
+                      "pm.environment.set('aiDescProjectName', projectName);",
+                      "pm.environment.set('aiDescProjectDesc', projectDesc);",
+                      "console.log('Creating AI project with description: ' + projectName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект AI с описанием создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('aiDescProjectId', projectId);",
+                      "    console.log('Created AI project with description, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiDescProjectName}}\",\n  \"description\": \"{{aiDescProjectDesc}}\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects (Проверка описания в списке)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projectId = pm.environment.get('aiDescProjectId');",
+                      "var projectName = pm.environment.get('aiDescProjectName');",
+                      "var projectDesc = pm.environment.get('aiDescProjectDesc');",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "var foundProject = null;",
+                      "for (var i = 0; i < json.result.length; i++) {",
+                      "    if (json.result[i].id === projectId) {",
+                      "        foundProject = json.result[i];",
+                      "        break;",
+                      "    }",
+                      "}",
+                      "",
+                      "pm.test('Created project found in list', function () {",
+                      "    pm.expect(foundProject).to.not.be.null;",
+                      "});",
+                      "",
+                      "pm.test('Project name matches in list', function () {",
+                      "    pm.expect(foundProject.name).to.equal(projectName);",
+                      "});",
+                      "",
+                      "pm.test('Project description visible in list', function () {",
+                      "    pm.expect(foundProject.description).to.equal(projectDesc);",
+                      "});",
+                      "",
+                      "pm.test('Project component is NLP (1)', function () {",
+                      "    pm.expect(foundProject.component).to.equal(1);",
+                      "});",
+                      "",
+                      "console.log('Project found in list: name=' + foundProject.name);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageSize", "value": "100" },
+                    { "key": "pageNumber", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Projects/{id} (Проверка описания на странице)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projectName = pm.environment.get('aiDescProjectName');",
+                      "var projectDesc = pm.environment.get('aiDescProjectDesc');",
+                      "",
+                      "pm.test('Project name matches on page', function () {",
+                      "    pm.expect(json.name).to.equal(projectName);",
+                      "});",
+                      "",
+                      "pm.test('Project description visible on page', function () {",
+                      "    pm.expect(json.description).to.equal(projectDesc);",
+                      "});",
+                      "",
+                      "pm.test('Project component is NLP (1)', function () {",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "console.log('Project verified on page: name=' + json.name);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiDescProjectId}}"
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id} (Удаление проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('aiDescProjectId');",
+                      "",
+                      "pm.test('Status 2xx - Проект удалён', function () {",
+                      "    pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "});",
+                      "",
+                      "console.log('Deleted AI project with description, ID: ' + projectId);",
+                      "",
+                      "pm.environment.unset('aiDescProjectId');",
+                      "pm.environment.unset('aiDescProjectName');",
+                      "pm.environment.unset('aiDescProjectDesc');",
+                      "",
+                      "console.log('Cleanup completed - all test variables removed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Projects/{{aiDescProjectId}}"
               }
             }
           ]
         }
       ]
     }
-  ],
-  "variable": []
+  ]
 }
