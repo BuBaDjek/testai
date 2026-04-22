@@ -535,6 +535,271 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить возможность создания, редактирования, удаления проекта",
+          "description": "Тест-кейс: Создание проекта AI Текст (Задачи NLP), редактирование и удаление",
+          "item": [
+            {
+              "name": "STEP 1 - POST /api/Projects (Создание проекта)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем уникальное имя проекта",
+                      "var timestamp = Date.now();",
+                      "var projectName = 'NLP_Test_' + timestamp;",
+                      "pm.environment.set('nlpProjectName', projectName);",
+                      "pm.environment.set('nlpProjectDesc', 'Тестовый проект Задачи NLP для автотестов');",
+                      "console.log('Creating NLP project: ' + projectName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 1: Создание проекта",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 201 - Проект NLP создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('nlpProjectId', projectId);",
+                      "    console.log('Created NLP project with ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{nlpProjectName}}\",\n  \"description\": \"{{nlpProjectDesc}}\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects/{id} (Проверка создания)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 2: Проверка что проект создан корректно",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projectName = pm.environment.get('nlpProjectName');",
+                      "var projectDesc = pm.environment.get('nlpProjectDesc');",
+                      "",
+                      "pm.test('Project name matches', function () {",
+                      "    pm.expect(json.name).to.equal(projectName);",
+                      "});",
+                      "",
+                      "pm.test('Project description matches', function () {",
+                      "    pm.expect(json.description).to.equal(projectDesc);",
+                      "});",
+                      "",
+                      "pm.test('Project component is NLP (1)', function () {",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "console.log('Project verified: name=' + json.name + ', component=' + json.component);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
+              }
+            },
+            {
+              "name": "STEP 3 - PUT /api/Projects/{id} (Редактирование проекта)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Новые данные для редактирования",
+                      "var timestamp = Date.now();",
+                      "var newName = 'NLP_Edited_' + timestamp;",
+                      "var newDesc = 'Отредактированный проект Задачи NLP';",
+                      "pm.environment.set('nlpEditedName', newName);",
+                      "pm.environment.set('nlpEditedDesc', newDesc);",
+                      "console.log('Updating project to: ' + newName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 3: Редактирование проекта",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Проект обновлён', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// PUT может вернуть пустой ответ, проверяем статус",
+                      "var responseText = pm.response.text();",
+                      "console.log('PUT response: ' + responseText);",
+                      "",
+                      "if (responseText && responseText.trim().length > 0) {",
+                      "    try {",
+                      "        var json = JSON.parse(responseText);",
+                      "        var newName = pm.environment.get('nlpEditedName');",
+                      "        var newDesc = pm.environment.get('nlpEditedDesc');",
+                      "        ",
+                      "        pm.test('Updated name matches', function () {",
+                      "            pm.expect(json.name).to.equal(newName);",
+                      "        });",
+                      "        ",
+                      "        pm.test('Updated description matches', function () {",
+                      "            pm.expect(json.description).to.equal(newDesc);",
+                      "        });",
+                      "        console.log('Project updated: ' + json.name);",
+                      "    } catch (e) {",
+                      "        console.log('Response is not JSON, status check passed');",
+                      "    }",
+                      "} else {",
+                      "    console.log('Empty response, status check passed');",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": {{nlpProjectId}},\n  \"name\": \"{{nlpEditedName}}\",\n  \"description\": \"{{nlpEditedDesc}}\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/Projects/{id} (Проверка редактирования)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 4: Проверка что изменения применились",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var newName = pm.environment.get('nlpEditedName');",
+                      "var newDesc = pm.environment.get('nlpEditedDesc');",
+                      "",
+                      "pm.test('Name updated correctly', function () {",
+                      "    pm.expect(json.name).to.equal(newName);",
+                      "});",
+                      "",
+                      "pm.test('Description updated correctly', function () {",
+                      "    pm.expect(json.description).to.equal(newDesc);",
+                      "});",
+                      "",
+                      "pm.test('Component still NLP (1)', function () {",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "console.log('Verified edited project: ' + json.name);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
+              }
+            },
+            {
+              "name": "STEP 5 - DELETE /api/Projects/{id} (Удаление проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 5: Удаление проекта (TEARDOWN)",
+                      "// =========================================",
+                      "",
+                      "var projectId = pm.environment.get('nlpProjectId');",
+                      "",
+                      "pm.test('Status 2xx - Проект удалён', function () {",
+                      "    pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "});",
+                      "",
+                      "console.log('Deleted NLP project ID: ' + projectId);",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset('nlpProjectId');",
+                      "pm.environment.unset('nlpProjectName');",
+                      "pm.environment.unset('nlpProjectDesc');",
+                      "pm.environment.unset('nlpEditedName');",
+                      "pm.environment.unset('nlpEditedDesc');",
+                      "",
+                      "console.log('Cleanup completed - all test variables removed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{nlpProjectId}}"
+              }
+            }
+          ]
         }
       ]
     }
