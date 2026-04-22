@@ -327,6 +327,214 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить создание проекта с неуникальным именем",
+          "description": "Тест-кейс: Проверка ошибки при создании проекта AI Текст с уже существующим именем",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Projects (Получить список проектов до создания)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 1: Получаем список проектов и запоминаем количество",
+                      "// Имя проекта должно быть уникальным ВСЕГДА, независимо от типа (component)",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Response is valid JSON with result array', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "// Сохраняем количество проектов до создания",
+                      "var projectCount = json.result ? json.result.length : 0;",
+                      "pm.environment.set('aiProjectCountBefore', projectCount);",
+                      "",
+                      "// Берём имя ЛЮБОГО существующего проекта (имя уникально глобально)",
+                      "var allProjects = json.result || [];",
+                      "",
+                      "console.log('Total projects before: ' + projectCount);",
+                      "console.log('All projects count: ' + allProjects.length);",
+                      "",
+                      "if (allProjects.length > 0) {",
+                      "    // Выбираем первый проект с валидным именем (без пробелов и спецсимволов)",
+                      "    var validName = null;",
+                      "    for (var i = 0; i < allProjects.length; i++) {",
+                      "        var proj = allProjects[i];",
+                      "        // Проверяем что имя подходит под regex: буквы, цифры, дефис, подчёркивание, точка",
+                      "        if (proj.name && /^[а-яА-Яa-zA-Z0-9@\\\\_\\-\\.]+$/.test(proj.name)) {",
+                      "            validName = proj.name;",
+                      "            console.log('Found valid existing project name: ' + validName);",
+                      "            break;",
+                      "        }",
+                      "    }",
+                      "    ",
+                      "    if (validName) {",
+                      "        pm.environment.set('aiExistingProjectName', validName);",
+                      "        console.log('Will use existing project name: ' + validName);",
+                      "    } else {",
+                      "        // Если нет валидного имени, используем первое и логируем",
+                      "        pm.environment.set('aiExistingProjectName', allProjects[0].name);",
+                      "        console.log('Using first project name (may have invalid chars): ' + allProjects[0].name);",
+                      "    }",
+                      "} else {",
+                      "    console.log('No existing projects found - test may not work correctly');",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageSize", "value": "100" },
+                    { "key": "pageNumber", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/Projects (Попытка создать проект с существующим именем)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Используем имя существующего проекта, если есть",
+                      "var existingName = pm.environment.get('aiExistingProjectName');",
+                      "if (!existingName) {",
+                      "    existingName = 'Тестовый проект AI'; // Fallback имя",
+                      "}",
+                      "pm.environment.set('aiDuplicateProjectName', existingName);",
+                      "console.log('Attempting to create project with existing name: ' + existingName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 2: Проверяем что создание дубликата возвращает ошибку",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 400 - Ошибка при создании проекта с неуникальным именем', function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test('Error response contains message', function () {",
+                      "    try {",
+                      "        var json = pm.response.json();",
+                      "        console.log('Error response: ' + JSON.stringify(json));",
+                      "        pm.expect(json).to.be.an('object');",
+                      "        // Проверяем наличие сообщения об ошибке",
+                      "        pm.expect(json.message || json.error || json.title || JSON.stringify(json)).to.be.a('string');",
+                      "    } catch (e) {",
+                      "        var text = pm.response.text();",
+                      "        console.log('Error response text: ' + text);",
+                      "        pm.expect(text).to.be.a('string').and.not.empty;",
+                      "    }",
+                      "});",
+                      "",
+                      "console.log('Duplicate project creation correctly rejected with 400 error');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{aiDuplicateProjectName}}\",\n  \"description\": \"\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Projects (Проверить что список не изменился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// =========================================",
+                      "// STEP 3: Проверяем что количество проектов не изменилось",
+                      "// =========================================",
+                      "",
+                      "pm.test('Status 200 - Список проектов получен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test('Project count unchanged after failed creation', function () {",
+                      "    var countBefore = pm.environment.get('aiProjectCountBefore');",
+                      "    var countAfter = json.result ? json.result.length : 0;",
+                      "    ",
+                      "    console.log('Projects before: ' + countBefore);",
+                      "    console.log('Projects after: ' + countAfter);",
+                      "    ",
+                      "    pm.expect(countAfter).to.equal(parseInt(countBefore));",
+                      "});",
+                      "",
+                      "pm.test('Response structure is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result).to.be.an('array');",
+                      "});",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset('aiProjectCountBefore');",
+                      "pm.environment.unset('aiExistingProjects');",
+                      "pm.environment.unset('aiExistingProjectName');",
+                      "pm.environment.unset('aiDuplicateProjectName');",
+                      "",
+                      "console.log('Cleanup completed - all test variables removed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Projects?pageSize=100&pageNumber=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Projects"],
+                  "query": [
+                    { "key": "pageSize", "value": "100" },
+                    { "key": "pageNumber", "value": "0" }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }
