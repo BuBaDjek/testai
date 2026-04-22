@@ -800,6 +800,316 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить навигацию по вкладкам проекта NLP",
+          "description": "Тест-кейс: Проверка доступности вкладок проекта (Модели, Навыки, Использование, Тестирование)",
+          "item": [
+            {
+              "name": "STEP 1 - POST /api/Projects (Создание проекта)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var timestamp = Date.now();",
+                      "var projectName = 'NLP_Nav_Test_' + timestamp;",
+                      "pm.environment.set('navProjectName', projectName);",
+                      "console.log('Creating NLP project for navigation test: ' + projectName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201 - Проект создан', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test('Response contains project ID', function () {",
+                      "    var responseText = pm.response.text();",
+                      "    pm.expect(responseText).to.be.a('string').and.not.empty;",
+                      "    var projectId = parseInt(responseText, 10);",
+                      "    pm.expect(projectId).to.be.a('number').and.above(0);",
+                      "    pm.environment.set('navProjectId', projectId);",
+                      "    console.log('Created NLP project for navigation, ID: ' + projectId);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{navProjectName}}\",\n  \"description\": \"Тест навигации по вкладкам NLP\",\n  \"component\": 1\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Projects/{id} (Проверка проекта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Проект найден', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('Project component is NLP (1)', function () {",
+                      "    pm.expect(json.component).to.equal(1);",
+                      "});",
+                      "",
+                      "console.log('Project verified: ID=' + pm.environment.get('navProjectId'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{navProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Модели - GET /api/enums/NlpEngines",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Справочник NLP движков доступен', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log('TAB Модели: NlpEngines endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/enums/NlpEngines"
+              }
+            },
+            {
+              "name": "TAB: Модели - GET /api/ModelTemplates",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Шаблоны моделей доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('ModelTemplates response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result || json).to.exist;",
+                      "});",
+                      "",
+                      "console.log('TAB Модели: ModelTemplates endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/ModelTemplates?component=NLP&allowedForProjectId={{navProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Навыки - GET /api/NlpTask/project/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Задачи NLP доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('NlpTask response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result || json).to.exist;",
+                      "});",
+                      "",
+                      "console.log('TAB Навыки: NlpTask endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/NlpTask/project/{{navProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Навыки - GET /api/NlpContextFiles",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Контекстные файлы доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log('TAB Навыки: NlpContextFiles endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/NlpContextFiles?IsPredefined=true"
+              }
+            },
+            {
+              "name": "TAB: Навыки - GET /api/NlpSystemMessages",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Системные сообщения доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log('TAB Навыки: NlpSystemMessages endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/NlpSystemMessages?IsPredefined=true"
+              }
+            },
+            {
+              "name": "TAB: Использование - GET /api/InferenceProcesses/agents/llm",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Процессы инференса доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log('TAB Использование: InferenceProcesses endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/InferenceProcesses/agents/llm?projectId={{navProjectId}}"
+              }
+            },
+            {
+              "name": "TAB: Тестирование - GET /api/ModelTypes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 - Типы моделей доступны', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test('ModelTypes response is valid', function () {",
+                      "    pm.expect(json).to.be.an('object');",
+                      "    pm.expect(json.result || json).to.exist;",
+                      "});",
+                      "",
+                      "console.log('TAB Тестирование: ModelTypes endpoint OK');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/ModelTypes?component=NLP&ActiveProjectId={{navProjectId}}"
+              }
+            },
+            {
+              "name": "TEARDOWN - DELETE /api/Projects/{id}",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var projectId = pm.environment.get('navProjectId');",
+                      "",
+                      "pm.test('Status 2xx - Проект удалён', function () {",
+                      "    pm.expect(pm.response.code).to.be.at.least(200).and.below(300);",
+                      "});",
+                      "",
+                      "console.log('Deleted NLP navigation test project ID: ' + projectId);",
+                      "",
+                      "pm.environment.unset('navProjectId');",
+                      "pm.environment.unset('navProjectName');",
+                      "console.log('Cleanup completed');"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{navProjectId}}"
+              }
+            }
+          ]
         }
       ]
     }
