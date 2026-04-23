@@ -1,0 +1,185 @@
+{
+  "info": {
+    "_postman_id": "machines-general-001",
+    "name": "Машины",
+    "description": "Тесты проверки UI машин",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "var token = pm.environment.get(\"token\");",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Общее",
+      "item": [
+        {
+          "name": "Авто-логин",
+          "item": [
+            {
+              "name": "POST /auth/account (Login)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists in response\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "if (json.token) {",
+                      "    pm.environment.set(\"token\", json.token);",
+                      "    console.log(\"Token saved: \" + json.token.substring(0, 30) + \"...\");",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить соответствие количества машин",
+          "description": "Тест-кейс: Проверка соответствия карточек машин и целевых машин в настройках",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Agents/ProcessSummary (Машины на странице)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машины получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Response has result\", function () {",
+                      "    pm.expect(json.result).to.exist;",
+                      "});",
+                      "",
+                      "pm.test(\"Response has totalCount\", function () {",
+                      "    pm.expect(json.totalCount).to.exist;",
+                      "});",
+                      "",
+                      "// Сохраняем количество машин",
+                      "pm.environment.set(\"machinesCount\", json.totalCount);",
+                      "",
+                      "console.log(\"STEP 1: Found \" + json.result.length + \" machines on page\");",
+                      "console.log(\"Total machines: \" + json.totalCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Agents/ProcessSummary"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/Agents (Целевые машины в настройках)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Целевые машины получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Response has result\", function () {",
+                      "    pm.expect(json.result).to.exist;",
+                      "});",
+                      "",
+                      "pm.test(\"Response has totalCount\", function () {",
+                      "    pm.expect(json.totalCount).to.exist;",
+                      "});",
+                      "",
+                      "// Сравниваем количество машин",
+                      "var machinesCount = pm.environment.get(\"machinesCount\");",
+                      "",
+                      "pm.test(\"Machines count matches\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(parseInt(machinesCount));",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Settings machines count: \" + json.totalCount);",
+                      "console.log(\"STEP 2: Page machines count: \" + machinesCount);",
+                      "",
+                      "// Cleanup",
+                      "pm.environment.unset(\"machinesCount\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
