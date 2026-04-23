@@ -1,0 +1,275 @@
+{
+  "info": {
+    "_postman_id": "machine-info-001",
+    "name": "Информация о машине",
+    "description": "Тесты проверки UI при переходе на страницу информации о машине",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "var token = pm.environment.get(\"token\");",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Авто-логин",
+      "item": [
+        {
+          "name": "POST /auth/account (Login)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Token exists in response\", function () {",
+                  "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "if (json.token) {",
+                  "    pm.environment.set(\"token\", json.token);",
+                  "    console.log(\"Token saved: \" + json.token.substring(0, 30) + \"...\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Client-Type",
+                "value": "Browser"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/account"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Проверить корректный переход на страницу Информация о машине",
+      "description": "Тест-кейс: Проверка перехода на страницу информации о машине при клике на карточку машины",
+      "item": [
+        {
+          "name": "STEP 1 - GET /api/Agents/MainPageStatistics (Главная страница)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Главная страница загружена\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains statistics\", function () {",
+                  "    pm.expect(json).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "console.log(\"STEP 1: Главная страница загружена\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Agents/MainPageStatistics"
+          }
+        },
+        {
+          "name": "STEP 2 - GET /api/Agents/ProcessSummary (Список карточек машин)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Список машин получен\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains result array\", function () {",
+                  "    pm.expect(json.result).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"At least one machine card exists\", function () {",
+                  "    pm.expect(json.result.length).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "if (json.result && json.result.length > 0) {",
+                  "    var firstMachine = json.result[0];",
+                  "    pm.environment.set(\"machineId\", firstMachine.id);",
+                  "    pm.environment.set(\"machineName\", firstMachine.name);",
+                  "    console.log(\"Found machine: \" + firstMachine.name + \" (ID: \" + firstMachine.id + \")\");",
+                  "} else {",
+                  "    console.log(\"No machines found!\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Agents/ProcessSummary?pageSize=4&pageNumber=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Agents",
+                "ProcessSummary"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "4"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "STEP 3 - GET /api/Agents/{id}/ProcessDetails (Информация о машине)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Информация о машине получена\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "var machineId = pm.environment.get(\"machineId\");",
+                  "",
+                  "pm.test(\"Machine ID is correct\", function () {",
+                  "    pm.expect(json.id).to.equal(parseInt(machineId));",
+                  "});",
+                  "",
+                  "pm.test(\"Machine has valid name\", function () {",
+                  "    pm.expect(json.name).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Machine has valid id\", function () {",
+                  "    pm.expect(json.id).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"Machine available field exists\", function () {",
+                  "    pm.expect(json.available).to.be.a(\"boolean\");",
+                  "});",
+                  "",
+                  "console.log(\"STEP 3: Открыта страница информации о машине\");",
+                  "console.log(\"Machine: \" + json.name + \" (ID: \" + json.id + \", available: \" + json.available + \")\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Agents/{{machineId}}/ProcessDetails"
+          }
+        },
+        {
+          "name": "STEP 4 - GET /api/Agents/{id}/ProcessDetails (Проверка повторного перехода)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Повторный переход успешен\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Machine has valid data\", function () {",
+                  "    pm.expect(json.id).to.be.a(\"number\");",
+                  "    pm.expect(json.name).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "console.log(\"STEP 4: Навигация работает корректно\");",
+                  "",
+                  "pm.environment.unset(\"machineId\");",
+                  "pm.environment.unset(\"machineName\");",
+                  "console.log(\"Cleanup completed\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Agents/{{machineId}}/ProcessDetails"
+          }
+        }
+      ]
+    }
+  ]
+}
