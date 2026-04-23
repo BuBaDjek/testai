@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "machine-info-001",
-    "name": "Информация о машине",
-    "description": "Тесты проверки UI при переходе на страницу информации о машине",
+    "name": "Главная страница",
+    "description": "Тесты проверки UI на главной странице",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -267,6 +267,240 @@
               }
             ],
             "url": "{{baseUrl}}/api/Agents/{{machineId}}/ProcessDetails"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Проверить корректный переход на страницу проекта при клике на карточку",
+      "description": "Тест-кейс: Проверка перехода на страницу проекта при клике на карточку проекта",
+      "item": [
+        {
+          "name": "STEP 1 - GET /api/Projects (Список проектов)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Список проектов получен\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains result array\", function () {",
+                  "    pm.expect(json.result).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"At least one project exists\", function () {",
+                  "    pm.expect(json.result.length).to.be.at.least(1);",
+                  "});",
+                  "",
+                  "if (json.result && json.result.length > 0) {",
+                  "    var firstProject = json.result[0];",
+                  "    pm.environment.set(\"projectId\", firstProject.id);",
+                  "    pm.environment.set(\"projectName\", firstProject.name);",
+                  "    console.log(\"Found project: \" + firstProject.name + \" (ID: \" + firstProject.id + \")\");",
+                  "} else {",
+                  "    console.log(\"No projects found!\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Projects?pageSize=4&pageNumber=0&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Projects"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "4"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                },
+                {
+                  "key": "sorting[0].OrderProp",
+                  "value": "CreatedAt"
+                },
+                {
+                  "key": "sorting[0].Asc",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "STEP 2 - GET /api/Projects/{id} (Переход на страницу проекта)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Проект найден\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "var projectId = pm.environment.get(\"projectId\");",
+                  "",
+                  "pm.test(\"Project ID matches\", function () {",
+                  "    pm.expect(json.id).to.equal(parseInt(projectId));",
+                  "});",
+                  "",
+                  "pm.test(\"Project has valid name\", function () {",
+                  "    pm.expect(json.name).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Project has valid component\", function () {",
+                  "    pm.expect(json.component).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "console.log(\"STEP 2: Открыта страница проекта\");",
+                  "console.log(\"Project: \" + json.name + \" (ID: \" + json.id + \")\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Projects/{{projectId}}"
+          }
+        },
+        {
+          "name": "STEP 3 - GET /api/Projects (Возврат к списку проектов)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Список проектов получен\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains result array\", function () {",
+                  "    pm.expect(json.result).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Project still in list\", function () {",
+                  "    var projectId = pm.environment.get(\"projectId\");",
+                  "    var found = false;",
+                  "    for (var i = 0; i < json.result.length; i++) {",
+                  "        if (json.result[i].id === parseInt(projectId)) {",
+                  "            found = true;",
+                  "            break;",
+                  "        }",
+                  "    }",
+                  "    pm.expect(found).to.be.true;",
+                  "});",
+                  "",
+                  "console.log(\"STEP 3: Возврат к списку проектов\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Projects?pageSize=4&pageNumber=0&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Projects"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "4"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                },
+                {
+                  "key": "sorting[0].OrderProp",
+                  "value": "CreatedAt"
+                },
+                {
+                  "key": "sorting[0].Asc",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "STEP 4 - GET /api/Projects/{id} (Повторный переход на страницу проекта)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Проект найден\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Project data is valid\", function () {",
+                  "    pm.expect(json.id).to.be.a(\"number\");",
+                  "    pm.expect(json.name).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "console.log(\"STEP 4: Навигация работает корректно\");",
+                  "",
+                  "pm.environment.unset(\"projectId\");",
+                  "pm.environment.unset(\"projectName\");",
+                  "console.log(\"Cleanup completed\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Projects/{{projectId}}"
           }
         }
       ]

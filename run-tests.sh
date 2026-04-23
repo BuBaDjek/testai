@@ -21,7 +21,7 @@ declare -a MODULES=(
     "projects/smart-ocr"
     "projects/smart-ai"
     "projects/smart-func"
-    "machine-info/machine-info"
+    "home-page/home-page"
 )
 
 declare -a MODULE_NAMES=(
@@ -29,7 +29,7 @@ declare -a MODULE_NAMES=(
     "01 - Проекты → Умный OCR"
     "02 - Проекты → AI Текст"
     "03 - Проекты → Функционал"
-    "04 - Информация о машине"
+    "04 - Главная страница"
 )
 
 show_help() {
@@ -187,13 +187,13 @@ run_single() {
             module_path="projects/smart-func"
             module_name="03 - Проекты → Функционал"
             ;;
-        machine)
-            module_path="machine-info/machine-info"
-            module_name="04 - Информация о машине"
+        home)
+            module_path="home-page/home-page"
+            module_name="04 - Главная страница"
             ;;
         *)
             echo "❌ Неизвестный модуль: $module_key"
-            echo "Доступные модули: auth, ocr, ai, func, machine"
+            echo "Доступные модули: auth, ocr, ai, func, home"
             exit 1
             ;;
     esac
@@ -257,8 +257,8 @@ if [ "$1" = "ai" ]; then
     exit $?
 fi
 
-if [ "$1" = "machine" ]; then
-    run_single "machine" "simple"
+if [ "$1" = "home" ]; then
+    run_single "home" "simple"
     exit $?
 fi
 
