@@ -504,6 +504,287 @@
           }
         }
       ]
+    },
+    {
+      "name": "Проверить работу кнопки Показать всё",
+      "description": "Тест-кейс: Проверка кнопок \"Показать всё\" на главной странице",
+      "item": [
+        {
+          "name": "STEP 1 - GET /api/Agents/MainPageStatistics (Статистика)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Статистика получена\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Statistics contains agents count\", function () {",
+                  "    pm.expect(json.agentsCount).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.test(\"Statistics contains projects count\", function () {",
+                  "    pm.expect(json.projectsCount).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "console.log(\"STEP 1: Статистика главной страницы загружена\");",
+                  "console.log(\"Agents: \" + json.agentsCount + \", Projects: \" + json.projectsCount);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Agents/MainPageStatistics"
+          }
+        },
+        {
+          "name": "STEP 2 - GET /api/Agents/ProcessSummary?pageSize=4 (Карточки машин)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Карточки машин получены\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains result array\", function () {",
+                  "    pm.expect(json.result).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Page size is 4 or less\", function () {",
+                  "    pm.expect(json.result.length).to.be.at.most(4);",
+                  "});",
+                  "",
+                  "pm.test(\"Total count exists\", function () {",
+                  "    pm.expect(json.totalCount).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "console.log(\"STEP 2: Карточки машин на главной странице\");",
+                  "console.log(\"Showing \" + json.result.length + \" of \" + json.totalCount + \" machines\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Agents/ProcessSummary?pageSize=4&pageNumber=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Agents",
+                "ProcessSummary"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "4"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "STEP 3 - GET /api/Projects?pageSize=4 (Карточки проектов)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Карточки проектов получены\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains result array\", function () {",
+                  "    pm.expect(json.result).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Page size is 4 or less\", function () {",
+                  "    pm.expect(json.result.length).to.be.at.most(4);",
+                  "});",
+                  "",
+                  "pm.test(\"Total count exists\", function () {",
+                  "    pm.expect(json.totalCount).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "console.log(\"STEP 3: Карточки проектов на главной странице\");",
+                  "console.log(\"Showing \" + json.result.length + \" of \" + json.totalCount + \" projects\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Projects?pageSize=4&pageNumber=0&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Projects"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "4"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                },
+                {
+                  "key": "sorting[0].OrderProp",
+                  "value": "CreatedAt"
+                },
+                {
+                  "key": "sorting[0].Asc",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "STEP 4 - GET /api/Agents/ProcessSummary (Показать всё - машины)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Все машины получены\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response has totalCount\", function () {",
+                  "    pm.expect(json.totalCount).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Response has result\", function () {",
+                  "    pm.expect(json.result).to.exist;",
+                  "});",
+                  "",
+                  "console.log(\"STEP 4: Machines total: \" + json.totalCount);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": "{{baseUrl}}/api/Agents/ProcessSummary"
+          }
+        },
+        {
+          "name": "STEP 5 - GET /api/Projects (Показать всё - проекты)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200 - Все проекты получены\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response has totalCount\", function () {",
+                  "    pm.expect(json.totalCount).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Response has result\", function () {",
+                  "    pm.expect(json.result).to.exist;",
+                  "});",
+                  "",
+                  "console.log(\"STEP 5: Projects total: \" + json.totalCount);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/Projects?pageNumber=0&pageSize=35&sorting[0].OrderProp=CreatedAt&sorting[0].Asc=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Projects"
+              ],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "0"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "35"
+                },
+                {
+                  "key": "sorting[0].OrderProp",
+                  "value": "CreatedAt"
+                },
+                {
+                  "key": "sorting[0].Asc",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
