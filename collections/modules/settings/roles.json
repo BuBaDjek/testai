@@ -898,6 +898,231 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить создание роли для тенанта BUCH",
+          "description": "Тест-кейс: Создание роли для конкретного тенанта",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/roles (Запомнить существующие роли)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCount = json.length;",
+                      "pm.environment.set(\"rolesCountBefore\", rolesCount);",
+                      "",
+                      "console.log(\"STEP 1: Existing roles: \" + rolesCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/roles/v2 (Создать роль для тенанта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Роль создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Response has id\", function () {",
+                      "    pm.expect(json.id).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.test(\"TenantId is saved\", function () {",
+                      "    pm.expect(json.tenantId).to.equal(\"BUCH\");",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdRoleId\", json.id);",
+                      "console.log(\"STEP 2: Created role with ID: \" + json.id + \" for tenant BUCH\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"name\": \"test_tenant_buch\",\n  \"description\": \"Test role for tenant BUCH\",\n  \"tenantId\": \"BUCH\",\n  \"permissions\": null,\n  \"rolePermissions\": null,\n  \"tenantName\": \"\",\n  \"invalidTenantData\": false,\n  \"adGroupSids\": [],\n  \"realmRoles\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/roles/v2"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/roles (Проверить что роль появилась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCountBefore = parseInt(pm.environment.get(\"rolesCountBefore\"));",
+                      "var createdRoleId = pm.environment.get(\"createdRoleId\");",
+                      "",
+                      "pm.test(\"Roles count increased by 1\", function () {",
+                      "    pm.expect(json.length).to.equal(rolesCountBefore + 1);",
+                      "});",
+                      "",
+                      "pm.test(\"Created role exists in list\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Tenant BUCH visible in list\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found.tenantId).to.equal(\"BUCH\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Role with tenant BUCH visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/roles/{id} (Проверить тенант при редактировании)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роль получена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"TenantId not lost\", function () {",
+                      "    pm.expect(json.tenantId).to.equal(\"BUCH\");",
+                      "});",
+                      "",
+                      "pm.test(\"Name not lost\", function () {",
+                      "    pm.expect(json.name).to.equal(\"test_tenant_buch\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Tenant BUCH verified in edit mode\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{currentRoleId}}"
+              }
+            },
+            {
+              "name": "STEP 5 - DELETE /api/roles/{id} (Удалить роль)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роль удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Role deleted\");",
+                      "",
+                      "pm.environment.unset(\"createdRoleId\");",
+                      "pm.environment.unset(\"rolesCountBefore\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{currentRoleId}}"
+              }
+            }
+          ]
         }
       ]
     }
