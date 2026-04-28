@@ -1981,6 +1981,336 @@
               }
             }
           ]
+        },
+        {
+          "name": "Редактирование и удаление пользователя",
+          "description": "Тест-кейс: Создание пользователя, редактирование (изменение fullName, email), проверка изменений и удаление",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/users (Запомнить существующих пользователей)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.environment.set(\"usersCountBeforeEdit\", json.length);",
+                      "",
+                      "console.log(\"STEP 1: Existing users: \" + json.length);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/users (Создать пользователя)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var timestamp = Date.now();",
+                      "var testUserName = \"edituser_\" + timestamp;",
+                      "var testUserEmail = \"edituser_\" + timestamp + \"@test.com\";",
+                      "var testUserFullName = \"Edit Test User\";",
+                      "",
+                      "pm.variables.set(\"testEditUserName\", testUserName);",
+                      "pm.variables.set(\"testEditUserEmail\", testUserEmail);",
+                      "pm.variables.set(\"testEditUserFullName\", testUserFullName);",
+                      "pm.environment.set(\"editUserLogin\", testUserName);",
+                      "",
+                      "console.log(\"STEP 2: Creating user: \" + testUserName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Пользователь создан\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var responseBody = pm.response.text().trim();",
+                      "",
+                      "pm.test(\"Response has user id\", function () {",
+                      "    pm.expect(responseBody).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);",
+                      "});",
+                      "",
+                      "pm.environment.set(\"editUserId\", responseBody);",
+                      "console.log(\"STEP 2: Created user with ID: \" + responseBody);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"userName\": \"{{testEditUserName}}\",\n  \"fullName\": \"{{testEditUserFullName}}\",\n  \"email\": \"{{testEditUserEmail}}\",\n  \"tenantId\": null,\n  \"tenantName\": \"\",\n  \"isAdUser\": false,\n  \"invalidTenantData\": false,\n  \"passwordChangeRequired\": false,\n  \"expiredAt\": \"\",\n  \"roles\": [],\n  \"password\": \"Test123!@#\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/users (Проверить что пользователь появился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var usersCountBefore = parseInt(pm.environment.get(\"usersCountBeforeEdit\"));",
+                      "var createdUserId = pm.environment.get(\"editUserId\");",
+                      "",
+                      "pm.test(\"Users count increased by 1\", function () {",
+                      "    pm.expect(json.length).to.equal(usersCountBefore + 1);",
+                      "});",
+                      "",
+                      "pm.test(\"Created user exists in list\", function () {",
+                      "    var found = json.find(function(u) { return u.id === createdUserId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "    pm.expect(found.fullName).to.equal(pm.environment.get(\"testEditUserFullName\") || \"Edit Test User\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: User visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 4 - PUT /api/users/{id} (Редактировать пользователя)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var userId = pm.environment.get(\"editUserId\");",
+                      "var newFullName = \"Edited Full Name\";",
+                      "var newEmail = \"edited_\" + Date.now() + \"@test.com\";",
+                      "",
+                      "pm.variables.set(\"editUserIdVar\", userId);",
+                      "pm.environment.set(\"editedFullName\", newFullName);",
+                      "pm.environment.set(\"editedEmail\", newEmail);",
+                      "",
+                      "console.log(\"STEP 4: Editing user \" + userId + \" with new fullName: \" + newFullName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователь отредактирован\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: User edited successfully\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"{{editUserIdVar}}\",\n  \"userName\": \"{{testEditUserName}}\",\n  \"fullName\": \"{{editedFullName}}\",\n  \"email\": \"{{editedEmail}}\",\n  \"disabled\": false,\n  \"tenantId\": null,\n  \"tenantName\": null,\n  \"invalidTenantData\": false,\n  \"passwordChangeRequired\": false,\n  \"expiredAt\": null,\n  \"system\": false,\n  \"roles\": [],\n  \"newPassword\": null\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/users/{{editUserIdVar}}"
+              }
+            },
+            {
+              "name": "STEP 5 - GET /api/users (Проверить что пользователь отредактирован)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var editedUserId = pm.environment.get(\"editUserId\");",
+                      "var editedFullName = pm.environment.get(\"editedFullName\");",
+                      "var editedEmail = pm.environment.get(\"editedEmail\");",
+                      "",
+                      "pm.test(\"Edited user exists with updated fullName\", function () {",
+                      "    var found = json.find(function(u) { return u.id === editedUserId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "    pm.expect(found.fullName).to.equal(editedFullName);",
+                      "});",
+                      "",
+                      "pm.test(\"Edited user has updated email\", function () {",
+                      "    var found = json.find(function(u) { return u.id === editedUserId; });",
+                      "    pm.expect(found.email).to.equal(editedEmail);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: User edit verified\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 6 - DELETE /api/users/{id} (Удалить пользователя)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var userId = pm.environment.get(\"editUserId\");",
+                      "pm.variables.set(\"deleteUserId\", userId);",
+                      "console.log(\"STEP 6: Deleting user with ID: \" + userId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователь удален\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: User deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users/{{deleteUserId}}"
+              }
+            },
+            {
+              "name": "STEP 7 - GET /api/users (Проверить что пользователь удалился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var usersCountBefore = parseInt(pm.environment.get(\"usersCountBeforeEdit\"));",
+                      "",
+                      "pm.test(\"Users count back to original\", function () {",
+                      "    pm.expect(json.length).to.equal(usersCountBefore);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 7: Verified user is deleted\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"usersCountBeforeEdit\");",
+                      "pm.environment.unset(\"editUserId\");",
+                      "pm.environment.unset(\"editUserLogin\");",
+                      "pm.environment.unset(\"editedFullName\");",
+                      "pm.environment.unset(\"editedEmail\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            }
+          ]
         }
       ]
     }
