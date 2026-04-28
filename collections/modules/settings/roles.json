@@ -375,6 +375,302 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить создание роли с ограниченным доступом",
+          "description": "Тест-кейс: Создание роли без прав удаления и управления",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/roles (Запомнить существующие роли)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCount = json.length;",
+                      "pm.environment.set(\"rolesCountBefore\", rolesCount);",
+                      "",
+                      "var existingIds = json.map(function(r) { return r.id; });",
+                      "pm.environment.set(\"existingRoleIds\", JSON.stringify(existingIds));",
+                      "",
+                      "console.log(\"STEP 1: Existing roles: \" + rolesCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/roles/v2/defaultpermissions (Получить все разрешения)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Разрешения получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "// Создаём rolePermissions БЕЗ deleting и control",
+                      "var rolePermissions = {};",
+                      "Object.keys(json).forEach(function(key) {",
+                      "    rolePermissions[key] = {};",
+                      "    Object.keys(json[key]).forEach(function(action) {",
+                      "        // Пропускаем deleting и control",
+                      "        if (action !== \"deleting\" && action !== \"control\") {",
+                      "            rolePermissions[key][action] = true;",
+                      "        }",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.environment.set(\"rolePermissions\", JSON.stringify(rolePermissions));",
+                      "console.log(\"STEP 2: Got limited permissions for \" + Object.keys(rolePermissions).length + \" modules\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/v2/defaultpermissions"
+              }
+            },
+            {
+              "name": "STEP 3 - POST /api/roles/v2 (Создать роль)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Роль создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Response has id\", function () {",
+                      "    pm.expect(json.id).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdRoleId\", json.id);",
+                      "console.log(\"STEP 3: Created role with ID: \" + json.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"name\": \"test_limited_access\",\n  \"description\": \"Test role with limited access (no delete/control)\",\n  \"tenantId\": null,\n  \"permissions\": null,\n  \"rolePermissions\": {{rolePermissions}},\n  \"tenantName\": \"\",\n  \"invalidTenantData\": false,\n  \"adGroupSids\": [],\n  \"realmRoles\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/roles/v2"
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/roles (Проверить что роль появилась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCountBefore = parseInt(pm.environment.get(\"rolesCountBefore\"));",
+                      "var createdRoleId = pm.environment.get(\"createdRoleId\");",
+                      "",
+                      "pm.test(\"Roles count increased by 1\", function () {",
+                      "    pm.expect(json.length).to.equal(rolesCountBefore + 1);",
+                      "});",
+                      "",
+                      "pm.test(\"Created role exists in list\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Roles count: \" + json.length + \" (was \" + rolesCountBefore + \")\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 5 - GET /api/roles/{id}/permissions (Проверить разрешения)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Разрешения получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"All permissions have view=true\", function () {",
+                      "    Object.keys(json).forEach(function(module) {",
+                      "        if (json[module].view !== undefined) {",
+                      "            pm.expect(json[module].view).to.equal(true);",
+                      "        }",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"All permissions have creation=true where applicable\", function () {",
+                      "    Object.keys(json).forEach(function(module) {",
+                      "        if (json[module].creation !== undefined) {",
+                      "            pm.expect(json[module].creation).to.equal(true);",
+                      "        }",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"All permissions have editing=true where applicable\", function () {",
+                      "    Object.keys(json).forEach(function(module) {",
+                      "        if (json[module].editing !== undefined) {",
+                      "            pm.expect(json[module].editing).to.equal(true);",
+                      "        }",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"No permissions have deleting=true (false or null)\", function () {",
+                      "    Object.keys(json).forEach(function(module) {",
+                      "        if (json[module].deleting !== undefined && json[module].deleting !== null) {",
+                      "            pm.expect(json[module].deleting).to.equal(false);",
+                      "        }",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"No permissions have control=true (false or null)\", function () {",
+                      "    Object.keys(json).forEach(function(module) {",
+                      "        if (json[module].control !== undefined && json[module].control !== null) {",
+                      "            pm.expect(json[module].control).to.equal(false);",
+                      "        }",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Limited permissions verified\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{currentRoleId}}/permissions"
+              }
+            },
+            {
+              "name": "STEP 6 - DELETE /api/roles/{id} (Удалить роль)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роль удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: Role deleted\");",
+                      "",
+                      "pm.environment.unset(\"createdRoleId\");",
+                      "pm.environment.unset(\"rolesCountBefore\");",
+                      "pm.environment.unset(\"existingRoleIds\");",
+                      "pm.environment.unset(\"rolePermissions\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{currentRoleId}}"
+              }
+            }
+          ]
         }
       ]
     }
