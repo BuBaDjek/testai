@@ -607,7 +607,7 @@
           ]
         },
         {
-          "name": "Создание пользователя(Обязательные поля + роль)",
+          "name": "Создание пользователя и проверка ограниченной роли (Обязательные поля + роль)",
           "description": "Тест-кейс: Создание роли с правами только чтение, создание пользователя с этой ролью, проверка read-only доступа, удаление пользователя и роли",
           "item": [
             {
@@ -1978,6 +1978,761 @@
                   }
                 ],
                 "url": "{{baseUrl}}/api/users"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Пользователь с полным доступом и проверка создания проектов",
+          "description": "Тест-кейс: Создание роли с полным доступом, создание пользователя с этой ролью, авторизация, проверка доступа к проектам, создание/удаление проекта, удаление пользователя и роли",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/roles (Запомнить существующие роли)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.environment.set(\"rolesCountBeforeFull\", json.length);",
+                      "",
+                      "console.log(\"STEP 1: Existing roles: \" + json.length);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/roles/v2 (Создать роль с полным доступом)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var timestamp = Date.now();",
+                      "var roleName = \"fullaccess_role_\" + timestamp;",
+                      "pm.variables.set(\"testFullAccessRoleName\", roleName);",
+                      "pm.environment.set(\"createdFullAccessRoleName\", roleName);",
+                      "",
+                      "console.log(\"STEP 2: Creating role with full access: \" + roleName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Роль создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Role has id\", function () {",
+                      "    pm.expect(json.id).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdFullAccessRoleId\", json.id);",
+                      "console.log(\"STEP 2: Created role with ID: \" + json.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"name\": \"{{testFullAccessRoleName}}\",\n  \"description\": \"Role with full access permissions\",\n  \"tenantId\": null,\n  \"permissions\": null,\n  \"rolePermissions\": {\n    \"Projects\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Folders\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"MarkingSchemes\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Roles\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Users\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Licenses\": {\"view\": true, \"creation\": true, \"deleting\": true},\n    \"ModelTemplates\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Models\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"ModelTypes\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"DataSets\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Markings\": {\"view\": true, \"creation\": true, \"deleting\": true},\n    \"Scripts\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"Agents\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true, \"control\": true},\n    \"InferenceProcessTemplates\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"InferenceProcesses\": {\"view\": true, \"creation\": true, \"deleting\": true, \"control\": true},\n    \"FinetuningProcessTemplates\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"FinetuningProcesses\": {\"view\": true, \"creation\": true, \"deleting\": true, \"control\": true},\n    \"LangflowScriptRunners\": {\"view\": true, \"creation\": true, \"deleting\": true, \"control\": true},\n    \"LangflowScripts\": {\"view\": true, \"creation\": true, \"control\": true},\n    \"Rags\": {\"view\": true, \"creation\": true, \"deleting\": true, \"control\": true},\n    \"RagTemplates\": {\"view\": true, \"creation\": true, \"deleting\": true, \"control\": true},\n    \"TrainProcessTemplates\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"TrainProcesses\": {\"view\": true, \"creation\": true, \"deleting\": true, \"control\": true},\n    \"EventsView\": {\"view\": true},\n    \"Pipelines\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true, \"control\": true},\n    \"NlpContextFiles\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"NlpTasks\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"NlpSystemMessages\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"RealmRoles\": {\"view\": true},\n    \"Prompts\": {\"view\": true, \"creation\": true, \"editing\": true, \"deleting\": true},\n    \"ApiInference\": {\"control\": true}\n  },\n  \"tenantName\": \"\",\n  \"invalidTenantData\": false,\n  \"adGroupSids\": [],\n  \"realmRoles\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/roles/v2"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/roles (Проверить что роль появилась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCountBefore = parseInt(pm.environment.get(\"rolesCountBeforeFull\"));",
+                      "var createdRoleId = pm.environment.get(\"createdFullAccessRoleId\");",
+                      "",
+                      "pm.test(\"Roles count increased by 1\", function () {",
+                      "    pm.expect(json.length).to.equal(rolesCountBefore + 1);",
+                      "});",
+                      "",
+                      "pm.test(\"Created role exists in list\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Role visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/users (Запомнить количество пользователей)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.environment.set(\"usersCountBeforeFull\", json.length);",
+                      "",
+                      "console.log(\"STEP 4: Users count before: \" + json.length);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 5 - POST /api/users (Создать пользователя с ролью полного доступа)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var timestamp = Date.now();",
+                      "var userName = \"fullaccessuser_\" + timestamp;",
+                      "var userEmail = \"fullaccessuser_\" + timestamp + \"@test.com\";",
+                      "var roleId = pm.environment.get(\"createdFullAccessRoleId\");",
+                      "",
+                      "pm.variables.set(\"testFullAccessUserName\", userName);",
+                      "pm.variables.set(\"testFullAccessUserEmail\", userEmail);",
+                      "pm.environment.set(\"createdFullAccessUserId\", null);",
+                      "pm.environment.set(\"fullAccessUserLogin\", userName);",
+                      "pm.environment.set(\"fullAccessUserPassword\", \"Test123!@#\");",
+                      "",
+                      "console.log(\"STEP 5: Creating user: \" + userName + \" with role ID: \" + roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Пользователь создан\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var responseBody = pm.response.text().trim();",
+                      "",
+                      "pm.test(\"Response has user id\", function () {",
+                      "    pm.expect(responseBody).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdFullAccessUserId\", responseBody);",
+                      "console.log(\"STEP 5: Created user with full access role, ID: \" + responseBody);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"userName\": \"{{testFullAccessUserName}}\",\n  \"fullName\": \"Full Access User\",\n  \"email\": \"{{testFullAccessUserEmail}}\",\n  \"tenantId\": null,\n  \"tenantName\": \"\",\n  \"isAdUser\": false,\n  \"invalidTenantData\": false,\n  \"passwordChangeRequired\": false,\n  \"expiredAt\": \"\",\n  \"roles\": [\"{{createdFullAccessRoleId}}\"],\n  \"password\": \"Test123!@#\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 6 - POST /auth/account (Login as user with full access)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"fullAccessToken\", json.token);",
+                      "console.log(\"STEP 6: Logged in as user with full access\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{fullAccessUserLogin}}\",\n  \"password\": \"Test123!@#\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            },
+            {
+              "name": "STEP 7 - GET /api/Projects (Проверить доступ к проектам)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var token = pm.environment.get(\"fullAccessToken\");",
+                      "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Доступ к проектам есть\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projects = json.result || json.items || json;",
+                      "console.log(\"STEP 7: Projects type: \" + typeof projects + \", isArray: \" + Array.isArray(projects));",
+                      "console.log(\"STEP 7: Projects count: \" + (projects ? projects.length : 'null/undefined'));",
+                      "pm.environment.set(\"projectsCountBeforeFull\", projects ? projects.length : 0);",
+                      "",
+                      "console.log(\"STEP 7: Projects accessible, count: \" + (projects ? projects.length : 0));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects?pageSize=35&pageNumber=0"
+              }
+            },
+            {
+              "name": "STEP 8 - POST /api/Projects (Создать проект)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var token = pm.environment.get(\"fullAccessToken\");",
+                      "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });",
+                      "",
+                      "var timestamp = Date.now();",
+                      "var projectName = \"testproject_\" + timestamp;",
+                      "pm.variables.set(\"testProjectName\", projectName);",
+                      "pm.environment.set(\"createdProjectName\", projectName);",
+                      "",
+                      "console.log(\"STEP 8: Creating project: \" + projectName);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Проект создан\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var responseBody = pm.response.text().trim();",
+                      "",
+                      "pm.test(\"Response has project id\", function () {",
+                      "    pm.expect(responseBody).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdProjectId\", responseBody);",
+                      "console.log(\"STEP 8: Created project with ID: \" + responseBody);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{testProjectName}}\",\n  \"description\": \"Test project for full access user\",\n  \"component\": 0,\n  \"modelUsage\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/Projects"
+              }
+            },
+            {
+              "name": "STEP 9 - GET /api/Projects (Проверить что проект появился)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var token = pm.environment.get(\"fullAccessToken\");",
+                      "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Проекты получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projects = json.result || json.items || json;",
+                      "var projectsCountBefore = parseInt(pm.environment.get(\"projectsCountBeforeFull\"));",
+                      "var createdProjectId = pm.environment.get(\"createdProjectId\");",
+                      "",
+                      "pm.test(\"Projects count increased by 1\", function () {",
+                      "    pm.expect(projects.length).to.equal(projectsCountBefore + 1);",
+                      "});",
+                      "",
+                      "pm.test(\"Created project exists in list\", function () {",
+                      "    var found = projects.find(function(p) { return p.id === parseInt(createdProjectId); });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 9: Project visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects?pageSize=35&pageNumber=0"
+              }
+            },
+            {
+              "name": "STEP 10 - DELETE /api/Projects/{id} (Удалить проект)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var token = pm.environment.get(\"fullAccessToken\");",
+                      "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });",
+                      "",
+                      "var projectId = pm.environment.get(\"createdProjectId\");",
+                      "pm.variables.set(\"projectIdToDelete\", projectId);",
+                      "",
+                      "console.log(\"STEP 10: Deleting project with ID: \" + projectId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 204 - Проект удален\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 10: Project deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects/{{projectIdToDelete}}"
+              }
+            },
+            {
+              "name": "STEP 11 - GET /api/Projects (Проверить что проект удалился)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var token = pm.environment.get(\"fullAccessToken\");",
+                      "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Проекты получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var projects = json.result || json.items || json;",
+                      "var projectsCountBefore = parseInt(pm.environment.get(\"projectsCountBeforeFull\"));",
+                      "",
+                      "pm.test(\"Projects count back to original\", function () {",
+                      "    pm.expect(projects.length).to.equal(projectsCountBefore);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 11: Verified project is deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/Projects?pageSize=35&pageNumber=0"
+              }
+            },
+            {
+              "name": "STEP 12 - POST /auth/account (Login as Admin for cleanup)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"token\", json.token);",
+                      "console.log(\"STEP 12: Logged in as admin for cleanup\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            },
+            {
+              "name": "STEP 13 - DELETE /api/users/{id} (Удалить пользователя)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var userId = pm.environment.get(\"createdFullAccessUserId\");",
+                      "pm.variables.set(\"fullAccessUserToDeleteId\", userId);",
+                      "console.log(\"STEP 13: Deleting user with ID: \" + userId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователь удален\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 13: User deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users/{{fullAccessUserToDeleteId}}"
+              }
+            },
+            {
+              "name": "STEP 14 - DELETE /api/roles/{id} (Удалить роль)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdFullAccessRoleId\");",
+                      "pm.variables.set(\"fullAccessRoleToDeleteId\", roleId);",
+                      "console.log(\"STEP 14: Deleting role with ID: \" + roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роль удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 14: Role deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{fullAccessRoleToDeleteId}}"
+              }
+            },
+            {
+              "name": "STEP 15 - GET /api/users (Проверить что пользователь удалился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var usersCountBefore = parseInt(pm.environment.get(\"usersCountBeforeFull\"));",
+                      "",
+                      "pm.test(\"Users count back to original\", function () {",
+                      "    pm.expect(json.length).to.equal(usersCountBefore);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 15: Verified user is deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 16 - GET /api/roles (Проверить что роль удалилась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCountBefore = parseInt(pm.environment.get(\"rolesCountBeforeFull\"));",
+                      "",
+                      "pm.test(\"Roles count back to original\", function () {",
+                      "    pm.expect(json.length).to.equal(rolesCountBefore);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 16: Verified role is deleted\");",
+                      "",
+                      "// Cleanup environment variables",
+                      "pm.environment.unset(\"rolesCountBeforeFull\");",
+                      "pm.environment.unset(\"usersCountBeforeFull\");",
+                      "pm.environment.unset(\"createdFullAccessRoleId\");",
+                      "pm.environment.unset(\"createdFullAccessRoleName\");",
+                      "pm.environment.unset(\"createdFullAccessUserId\");",
+                      "pm.environment.unset(\"fullAccessUserLogin\");",
+                      "pm.environment.unset(\"fullAccessUserPassword\");",
+                      "pm.environment.unset(\"fullAccessToken\");",
+                      "pm.environment.unset(\"projectsCountBeforeFull\");",
+                      "pm.environment.unset(\"createdProjectId\");",
+                      "pm.environment.unset(\"createdProjectName\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
               }
             }
           ]
