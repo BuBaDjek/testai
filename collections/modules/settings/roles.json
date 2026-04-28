@@ -1348,6 +1348,362 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить возможность редактирование и удаление роли",
+          "description": "Тест-кейс: Создание, редактирование и удаление роли",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/roles (Запомнить существующие роли)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCount = json.length;",
+                      "pm.environment.set(\"rolesCountBefore\", rolesCount);",
+                      "",
+                      "console.log(\"STEP 1: Existing roles: \" + rolesCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/roles/v2 (Создать роль)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Роль создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Response has id\", function () {",
+                      "    pm.expect(json.id).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.test(\"Name is initial\", function () {",
+                      "    pm.expect(json.name).to.equal(\"test_edit_initial\");",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdRoleId\", json.id);",
+                      "console.log(\"STEP 2: Created role with ID: \" + json.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"name\": \"test_edit_initial\",\n  \"description\": \"Initial description\",\n  \"tenantId\": null,\n  \"permissions\": null,\n  \"rolePermissions\": null,\n  \"tenantName\": \"\",\n  \"invalidTenantData\": false,\n  \"adGroupSids\": [],\n  \"realmRoles\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/roles/v2"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/roles (Проверить что роль появилась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var createdRoleId = pm.environment.get(\"createdRoleId\");",
+                      "",
+                      "pm.test(\"Created role exists in list\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Role visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 4 - PUT /api/roles/v2/{id} (Редактировать роль)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 204 - Роль обновлена\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Role edited (204 No Content)\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"{{currentRoleId}}\",\n  \"name\": \"test_edited\",\n  \"description\": \"Edited description\",\n  \"tenantId\": \"BUCH\",\n  \"permissions\": null,\n  \"rolePermissions\": {\"Projects\":{\"view\":true},\"Folders\":{\"view\":true},\"Roles\":{\"view\":true}},\n  \"tenantName\": null,\n  \"invalidTenantData\": false,\n  \"adGroupSids\": [],\n  \"realmRoles\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/roles/v2/{{currentRoleId}}"
+              }
+            },
+            {
+              "name": "STEP 5 - GET /api/roles (Проверить что роль отредактировалась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var createdRoleId = pm.environment.get(\"createdRoleId\");",
+                      "",
+                      "pm.test(\"Role has edited name\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found.name).to.equal(\"test_edited\");",
+                      "});",
+                      "",
+                      "pm.test(\"Role has edited description\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found.description).to.equal(\"Edited description\");",
+                      "});",
+                      "",
+                      "pm.test(\"Role has edited tenantId\", function () {",
+                      "    var found = json.find(function(r) { return r.id === createdRoleId; });",
+                      "    pm.expect(found.tenantId).to.equal(\"BUCH\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Changes visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 6 - GET /api/roles/{id} (Проверить изменения при редактировании)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роль получена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Name persisted\", function () {",
+                      "    pm.expect(json.name).to.equal(\"test_edited\");",
+                      "});",
+                      "",
+                      "pm.test(\"Description persisted\", function () {",
+                      "    pm.expect(json.description).to.equal(\"Edited description\");",
+                      "});",
+                      "",
+                      "pm.test(\"TenantId persisted\", function () {",
+                      "    pm.expect(json.tenantId).to.equal(\"BUCH\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: All changes persisted in edit mode\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{currentRoleId}}"
+              }
+            },
+            {
+              "name": "STEP 7 - DELETE /api/roles/{id} (Удалить роль)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var roleId = pm.environment.get(\"createdRoleId\");",
+                      "pm.variables.set(\"currentRoleId\", roleId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роль удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 7: Role deleted\");",
+                      "",
+                      "var count = pm.environment.get(\"rolesCountBefore\");",
+                      "pm.environment.set(\"rolesCountBeforeCheck\", count);",
+                      "",
+                      "pm.environment.unset(\"createdRoleId\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles/{{currentRoleId}}"
+              }
+            },
+            {
+              "name": "STEP 8 - GET /api/roles (Проверить что роль удалилась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Роли получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var rolesCountBefore = parseInt(pm.environment.get(\"rolesCountBeforeCheck\") || \"0\");",
+                      "",
+                      "pm.test(\"Roles count back to original\", function () {",
+                      "    pm.expect(json.length).to.equal(rolesCountBefore);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 8: Verified role is deleted\");",
+                      "",
+                      "pm.environment.unset(\"rolesCountBefore\");",
+                      "pm.environment.unset(\"rolesCountBeforeCheck\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            }
+          ]
         }
       ]
     }
