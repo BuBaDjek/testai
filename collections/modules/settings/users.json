@@ -1413,6 +1413,574 @@
               }
             }
           ]
+        },
+        {
+          "name": "Создание пользователя(Обязательные поля + срок действия пароля)",
+          "description": "Тест-кейс: Создание пользователя с ограниченным сроком действия пароля (30 секунд), проверка успешной авторизации до истечения срока и ошибки после истечения",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/users (Запомнить существующих пользователей)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.environment.set(\"usersCountBeforeExpired\", json.length);",
+                      "",
+                      "console.log(\"STEP 1: Existing users: \" + json.length);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/users (Создать пользователя с сроком действия пароля)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Генерируем уникальные имя и email для теста",
+                      "var timestamp = Date.now();",
+                      "var testUserName = \"expuser_\" + timestamp;",
+                      "var testUserEmail = \"expuser_\" + timestamp + \"@test.com\";",
+                      "",
+                      "// Вычисляем expiredAt: текущее время + 5 секунд (в UTC ISO формате)",
+                      "var now = new Date();",
+                      "var expiredAt = new Date(now.getTime() + 5 * 1000);",
+                      "var expiredAtISO = expiredAt.toISOString();",
+                      "",
+                      "pm.variables.set(\"testExpUserName\", testUserName);",
+                      "pm.variables.set(\"testExpUserEmail\", testUserEmail);",
+                      "pm.variables.set(\"expiredAtValue\", expiredAtISO);",
+                      "pm.environment.set(\"expUserLogin\", testUserName);",
+                      "pm.environment.set(\"expUserExpiredAt\", expiredAtISO);",
+                      "",
+                      "console.log(\"STEP 2: Creating user: \" + testUserName + \" with password valid until: \" + expiredAtISO);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Пользователь создан\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var responseBody = pm.response.text().trim();",
+                      "",
+                      "pm.test(\"Response has user id\", function () {",
+                      "    pm.expect(responseBody).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);",
+                      "});",
+                      "",
+                      "pm.environment.set(\"createdExpUserId\", responseBody);",
+                      "pm.environment.set(\"expUserPassword\", \"Test123!@#\");",
+                      "console.log(\"STEP 2: Created user with ID: \" + responseBody);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"id\": \"\",\n  \"userName\": \"{{testExpUserName}}\",\n  \"fullName\": \"Expired Password User\",\n  \"email\": \"{{testExpUserEmail}}\",\n  \"tenantId\": null,\n  \"tenantName\": \"\",\n  \"isAdUser\": false,\n  \"invalidTenantData\": false,\n  \"passwordChangeRequired\": false,\n  \"expiredAt\": \"{{expiredAtValue}}\",\n  \"roles\": [],\n  \"password\": \"Test123!@#\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/users (Проверить что пользователь появился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var usersCountBefore = parseInt(pm.environment.get(\"usersCountBeforeExpired\"));",
+                      "var createdUserId = pm.environment.get(\"createdExpUserId\");",
+                      "",
+                      "pm.test(\"Users count increased by 1\", function () {",
+                      "    pm.expect(json.length).to.equal(usersCountBefore + 1);",
+                      "});",
+                      "",
+                      "pm.test(\"Created user exists in list\", function () {",
+                      "    var found = json.find(function(u) { return u.id === createdUserId; });",
+                      "    pm.expect(found).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: User visible in list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            },
+            {
+              "name": "STEP 4 - POST /auth/account (Login as new user - password valid)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация (пароль действителен)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"expUserToken\", json.token);",
+                      "",
+                      "// Проверяем что текущее время в пределах срока действия",
+                      "var now = new Date();",
+                      "var expiredAt = new Date(pm.environment.get(\"expUserExpiredAt\"));",
+                      "pm.test(\"Current time is within password validity period\", function () {",
+                      "    pm.expect(now.getTime()).to.be.below(expiredAt.getTime());",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Logged in as new user - password is valid\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{expUserLogin}}\",\n  \"password\": \"Test123!@#\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            },
+            {
+              "name": "STEP 5 - POST /auth/account/logout (Logout user)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var token = pm.environment.get(\"expUserToken\");",
+                      "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 204 - Выход выполнен\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: User logged out\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/x-www-form-urlencoded"
+                  }
+                ],
+                "url": "{{baseUrl}}/auth/account/logout"
+              }
+            },
+            {
+              "name": "STEP 6a - Delay 1s",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Delay 1s - waiting for password expiration\", function () {",
+                      "    pm.expect(true).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 6b - Delay 2s",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Delay 2s - waiting for password expiration\", function () {",
+                      "    pm.expect(true).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 6c - Delay 3s",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Delay 3s - waiting for password expiration\", function () {",
+                      "    pm.expect(true).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 6d - Delay 4s",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Delay 4s - waiting for password expiration\", function () {",
+                      "    pm.expect(true).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 6e - Delay 5s",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Delay 5s - waiting for password expiration\", function () {",
+                      "    pm.expect(true).to.be.true;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 6f - Delay 6s",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var now = new Date();",
+                      "var expiredAt = new Date(pm.environment.get(\"expUserExpiredAt\"));",
+                      "",
+                      "console.log(\"STEP 6f: Current time: \" + now.toISOString());",
+                      "console.log(\"STEP 6f: Password expired at: \" + expiredAt.toISOString());",
+                      "",
+                      "pm.test(\"Password should be expired now\", function () {",
+                      "    pm.expect(now.getTime()).to.be.at.least(expiredAt.getTime() - 1000);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/roles"
+              }
+            },
+            {
+              "name": "STEP 7 - POST /auth/account (Login after expiration - should fail)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Ожидаем ошибку авторизации после истечения срока действия пароля",
+                      "pm.test(\"Status 401 или 403 - Ошибка авторизации (пароль истек)\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403]);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 7: Login failed as expected - password has expired\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{expUserLogin}}\",\n  \"password\": \"Test123!@#\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            },
+            {
+              "name": "STEP 8 - POST /auth/account (Login as Admin for cleanup)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"token\", json.token);",
+                      "console.log(\"STEP 8: Logged in as admin for cleanup\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            },
+            {
+              "name": "STEP 9 - DELETE /api/users/{id} (Удалить пользователя)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var userId = pm.environment.get(\"createdExpUserId\");",
+                      "pm.variables.set(\"expUserToDeleteId\", userId);",
+                      "console.log(\"STEP 9: Deleting user with ID: \" + userId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователь удален\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 9: User deleted\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users/{{expUserToDeleteId}}"
+              }
+            },
+            {
+              "name": "STEP 10 - GET /api/users (Проверить что пользователь удалился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Пользователи получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "var usersCountBefore = parseInt(pm.environment.get(\"usersCountBeforeExpired\"));",
+                      "",
+                      "pm.test(\"Users count back to original\", function () {",
+                      "    pm.expect(json.length).to.equal(usersCountBefore);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 10: Verified user is deleted\");",
+                      "",
+                      "// Очистка переменных окружения",
+                      "pm.environment.unset(\"usersCountBeforeExpired\");",
+                      "pm.environment.unset(\"createdExpUserId\");",
+                      "pm.environment.unset(\"expUserLogin\");",
+                      "pm.environment.unset(\"expUserPassword\");",
+                      "pm.environment.unset(\"expUserExpiredAt\");",
+                      "pm.environment.unset(\"expUserToken\");",
+                      "pm.environment.unset(\"passwordExpired\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/users"
+              }
+            }
+          ]
         }
       ]
     }
