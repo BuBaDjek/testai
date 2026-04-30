@@ -1,0 +1,614 @@
+{
+  "info": {
+    "_postman_id": "settings-licenses-001",
+    "name": "Настройки",
+    "description": "Тесты раздела Настройки",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "var token = pm.environment.get(\"token\");",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Лицензии",
+      "item": [
+        {
+          "name": "Авто-логин",
+          "item": [
+            {
+              "name": "POST /auth/account (Login Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists in response\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "if (json.token) {",
+                      "    pm.environment.set(\"token\", json.token);",
+                      "    console.log(\"Admin token saved\");",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Client-Type",
+                    "value": "Browser"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Запрос лицензии на один месяц SERVER",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, нажатие кнопки запрос лицензии, проверка даты регистрации, проверка параметров запроса, сохранение файла и проверка его содержимого",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Лицензии получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "console.log(\"STEP 1: Current licenses: \" + JSON.stringify(json));",
+                      "",
+                      "pm.test(\"Licenses array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 1: Licenses list retrieved\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Продукты получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Products array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"Product 'Primo RPA AI Server' exists\", function () {",
+                      "    var serverProduct = json.find(function(p) { return p.name === \"Primo RPA AI Server\"; });",
+                      "    pm.expect(serverProduct).to.not.be.undefined;",
+                      "    pm.environment.set(\"licenseProductId\", serverProduct.id);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Products: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses/products"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Проверка даты регистрации)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Получаем сегодняшнюю дату в формате ISO для запроса",
+                      "var now = new Date();",
+                      "var todayISO = now.toISOString();",
+                      "var todayShort = now.toISOString().split('T')[0];",
+                      "",
+                      "pm.environment.set(\"licenseStartDate\", todayISO);",
+                      "pm.environment.set(\"licenseStartDateShort\", todayShort);",
+                      "",
+                      "console.log(\"STEP 3: Today's date (ISO): \" + todayISO);",
+                      "console.log(\"STEP 3: Today's date (Short): \" + todayShort);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Запрос лицензии выполнен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Проверяем что ответ это файл для скачивания",
+                      "pm.test(\"Response is octet-stream\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\");",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Disposition header contains filename\", function () {",
+                      "    var contentDisposition = pm.response.headers.get(\"Content-Disposition\");",
+                      "    pm.expect(contentDisposition).to.include(\"licensereq\");",
+                      "});",
+                      "",
+                      "// Получаем содержимое файла",
+                      "var fileContent = pm.response.text();",
+                      "console.log(\"STEP 3: License file content:\\n\" + fileContent);",
+                      "",
+                      "pm.environment.set(\"licenseFileContent\", fileContent);",
+                      "",
+                      "console.log(\"STEP 3: License request file received\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDate}}&licenseType=1&concurrentCount=1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "{{licenseStartDate}}"
+                    },
+                    {
+                      "key": "licenseType",
+                      "value": "1"
+                    },
+                    {
+                      "key": "concurrentCount",
+                      "value": "1"
+                    },
+                    {
+                      "key": "primoSystem",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var fileContent = pm.environment.get(\"licenseFileContent\");",
+                      "",
+                      "pm.test(\"License file content exists\", function () {",
+                      "    pm.expect(fileContent).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "// Проверяем что файл содержит XML структуру",
+                      "pm.test(\"License file contains XML structure\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<license>\");",
+                      "    pm.expect(fileContent).to.include(\"</license>\");",
+                      "});",
+                      "",
+                      "// Проверяем type = month",
+                      "pm.test(\"License type is 'month'\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<type>month</type>\");",
+                      "});",
+                      "",
+                      "// Проверяем count = 1",
+                      "pm.test(\"License count is 1\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<count>1</count>\");",
+                      "});",
+                      "",
+                      "// Проверяем что дата в файле соответствует сегодняшней",
+                      "var todayShort = pm.environment.get(\"licenseStartDateShort\");",
+                      "var dateMatch = todayShort.split('-').reverse().join('.'); // Конвертируем YYYY-MM-DD в DD.MM.YYYY",
+                      "",
+                      "pm.test(\"License date matches today's date\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<date>\" + dateMatch + \"</date>\");",
+                      "});",
+                      "",
+                      "// Проверяем что продукт = aistudio (Primo RPA AI Server)",
+                      "pm.test(\"License product is 'aistudio'\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<product>aistudio</product>\");",
+                      "});",
+                      "",
+                      "// Проверяем что ключ (key) заполнен",
+                      "pm.test(\"License key is filled\", function () {",
+                      "    var keyMatch = fileContent.match(/<key>([^<]+)<\\/key>/);",
+                      "    pm.expect(keyMatch).to.not.be.null;",
+                      "    pm.expect(keyMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что CPU заполнен",
+                      "pm.test(\"License CPU is filled\", function () {",
+                      "    var cpuMatch = fileContent.match(/<cpu>([^<]+)<\\/cpu>/);",
+                      "    pm.expect(cpuMatch).to.not.be.null;",
+                      "    pm.expect(cpuMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что HDD заполнен",
+                      "pm.test(\"License HDD is filled\", function () {",
+                      "    var hddMatch = fileContent.match(/<hdd>([^<]+)<\\/hdd>/);",
+                      "    pm.expect(hddMatch).to.not.be.null;",
+                      "    pm.expect(hddMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что user заполнен",
+                      "pm.test(\"License user is filled\", function () {",
+                      "    var userMatch = fileContent.match(/<user>([^<]+)<\\/user>/);",
+                      "    pm.expect(userMatch).to.not.be.null;",
+                      "    pm.expect(userMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что signature пустой (не заполнен)",
+                      "pm.test(\"License signature is empty\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<signature></signature>\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: License file validation completed\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"licenseFileContent\");",
+                      "pm.environment.unset(\"licenseProductId\");",
+                      "pm.environment.unset(\"licenseStartDate\");",
+                      "pm.environment.unset(\"licenseStartDateShort\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Запрос лицензии на три месяца SERVER",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии на сегодняшнюю дату, период Три месяца, количество 1, продукт Primo RPA AI Server, проверка содержимого файла (type=three_months, count=1, date=today)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Лицензии получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "console.log(\"STEP 1: Current licenses: \" + JSON.stringify(json));",
+                      "",
+                      "pm.test(\"Licenses array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 1: Licenses list retrieved\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Продукты получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Products array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"Product 'Primo RPA AI Server' exists\", function () {",
+                      "    var serverProduct = json.find(function(p) { return p.name === \"Primo RPA AI Server\"; });",
+                      "    pm.expect(serverProduct).to.not.be.undefined;",
+                      "    pm.environment.set(\"licenseProductId3m\", serverProduct.id);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Products: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses/products"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Запрос лицензии на 3 месяца)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Получаем сегодняшнюю дату в формате ISO для запроса",
+                      "var now = new Date();",
+                      "var todayISO = now.toISOString();",
+                      "var todayShort = now.toISOString().split('T')[0];",
+                      "",
+                      "pm.environment.set(\"licenseStartDate3m\", todayISO);",
+                      "pm.environment.set(\"licenseStartDateShort3m\", todayShort);",
+                      "",
+                      "console.log(\"STEP 3: Today's date (ISO): \" + todayISO);",
+                      "console.log(\"STEP 3: Today's date (Short): \" + todayShort);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Запрос лицензии выполнен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Проверяем что ответ это файл для скачивания",
+                      "pm.test(\"Response is octet-stream\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\");",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Disposition header contains filename\", function () {",
+                      "    var contentDisposition = pm.response.headers.get(\"Content-Disposition\");",
+                      "    pm.expect(contentDisposition).to.include(\"licensereq\");",
+                      "});",
+                      "",
+                      "// Получаем содержимое файла",
+                      "var fileContent = pm.response.text();",
+                      "console.log(\"STEP 3: License file content:\\n\" + fileContent);",
+                      "",
+                      "pm.environment.set(\"licenseFileContent3m\", fileContent);",
+                      "",
+                      "console.log(\"STEP 3: License request file received\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDate3m}}&licenseType=2&concurrentCount=1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "{{licenseStartDate3m}}"
+                    },
+                    {
+                      "key": "licenseType",
+                      "value": "2"
+                    },
+                    {
+                      "key": "concurrentCount",
+                      "value": "1"
+                    },
+                    {
+                      "key": "primoSystem",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var fileContent = pm.environment.get(\"licenseFileContent3m\");",
+                      "",
+                      "pm.test(\"License file content exists\", function () {",
+                      "    pm.expect(fileContent).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "// Проверяем что файл содержит XML структуру",
+                      "pm.test(\"License file contains XML structure\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<license>\");",
+                      "    pm.expect(fileContent).to.include(\"</license>\");",
+                      "});",
+                      "",
+                      "// Проверяем type = three_months",
+                      "pm.test(\"License type is 'three_months'\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<type>three_months</type>\");",
+                      "});",
+                      "",
+                      "// Проверяем count = 1",
+                      "pm.test(\"License count is 1\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<count>1</count>\");",
+                      "});",
+                      "",
+                      "// Проверяем что дата в файле соответствует сегодняшней",
+                      "var todayShort = pm.environment.get(\"licenseStartDateShort3m\");",
+                      "var dateMatch = todayShort.split('-').reverse().join('.'); // Конвертируем YYYY-MM-DD в DD.MM.YYYY",
+                      "",
+                      "pm.test(\"License date matches today's date\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<date>\" + dateMatch + \"</date>\");",
+                      "});",
+                      "",
+                      "// Проверяем что продукт = aistudio (Primo RPA AI Server)",
+                      "pm.test(\"License product is 'aistudio'\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<product>aistudio</product>\");",
+                      "});",
+                      "",
+                      "// Проверяем что ключ (key) заполнен",
+                      "pm.test(\"License key is filled\", function () {",
+                      "    var keyMatch = fileContent.match(/<key>([^<]+)<\\/key>/);",
+                      "    pm.expect(keyMatch).to.not.be.null;",
+                      "    pm.expect(keyMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что CPU заполнен",
+                      "pm.test(\"License CPU is filled\", function () {",
+                      "    var cpuMatch = fileContent.match(/<cpu>([^<]+)<\\/cpu>/);",
+                      "    pm.expect(cpuMatch).to.not.be.null;",
+                      "    pm.expect(cpuMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что HDD заполнен",
+                      "pm.test(\"License HDD is filled\", function () {",
+                      "    var hddMatch = fileContent.match(/<hdd>([^<]+)<\\/hdd>/);",
+                      "    pm.expect(hddMatch).to.not.be.null;",
+                      "    pm.expect(hddMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что user заполнен",
+                      "pm.test(\"License user is filled\", function () {",
+                      "    var userMatch = fileContent.match(/<user>([^<]+)<\\/user>/);",
+                      "    pm.expect(userMatch).to.not.be.null;",
+                      "    pm.expect(userMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что signature пустой (не заполнен)",
+                      "pm.test(\"License signature is empty\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<signature></signature>\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: License file validation completed\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"licenseFileContent3m\");",
+                      "pm.environment.unset(\"licenseProductId3m\");",
+                      "pm.environment.unset(\"licenseStartDate3m\");",
+                      "pm.environment.unset(\"licenseStartDateShort3m\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

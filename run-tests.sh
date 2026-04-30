@@ -25,6 +25,7 @@ declare -a MODULES=(
     "machines/general"
     "settings/roles"
     "settings/users"
+    "settings/licenses"
 )
 
 declare -a MODULE_NAMES=(
@@ -36,6 +37,7 @@ declare -a MODULE_NAMES=(
     "05 - Машины"
     "06 - Настройки → Роли"
     "07 - Настройки → Пользователи"
+    "08 - Настройки → Лицензии"
 )
 
 show_help() {
@@ -209,9 +211,13 @@ run_single() {
             module_path="settings/users"
             module_name="07 - Настройки → Пользователи"
             ;;
+        licenses)
+            module_path="settings/licenses"
+            module_name="08 - Настройки → Лицензии"
+            ;;
         *)
             echo "❌ Неизвестный модуль: $module_key"
-            echo "Доступные модули: auth, ocr, ai, func, home, machines, settings, users"
+            echo "Доступные модули: auth, ocr, ai, func, home, machines, settings, users, licenses"
             exit 1
             ;;
     esac
@@ -292,6 +298,11 @@ fi
 
 if [ "$1" = "users" ]; then
     run_single "users" "simple"
+    exit $?
+fi
+
+if [ "$1" = "licenses" ]; then
+    run_single "licenses" "simple"
     exit $?
 fi
 
