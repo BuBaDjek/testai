@@ -211,13 +211,13 @@ run_single() {
             module_path="settings/users"
             module_name="07 - Настройки → Пользователи"
             ;;
-        licenses)
+        licenses|licences)
             module_path="settings/licenses"
             module_name="08 - Настройки → Лицензии"
             ;;
         *)
             echo "❌ Неизвестный модуль: $module_key"
-            echo "Доступные модули: auth, ocr, ai, func, home, machines, settings, users, licenses"
+            echo "Доступные модули: auth, ocr, ai, func, home, machines, settings, users, licenses (или licences)"
             exit 1
             ;;
     esac
@@ -267,42 +267,42 @@ if [ "$1" = "simple" ]; then
 fi
 
 if [ "$1" = "auth" ]; then
-    run_single "auth" "simple"
+    run_single "auth" "allure"
     exit $?
 fi
 
 if [ "$1" = "ocr" ]; then
-    run_single "ocr" "simple"
+    run_single "ocr" "allure"
     exit $?
 fi
 
 if [ "$1" = "ai" ]; then
-    run_single "ai" "simple"
+    run_single "ai" "allure"
     exit $?
 fi
 
 if [ "$1" = "home" ]; then
-    run_single "home" "simple"
+    run_single "home" "allure"
     exit $?
 fi
 
 if [ "$1" = "machines" ]; then
-    run_single "machines" "simple"
+    run_single "machines" "allure"
     exit $?
 fi
 
 if [ "$1" = "settings" ]; then
-    run_single "settings" "simple"
+    run_single "settings" "allure"
     exit $?
 fi
 
 if [ "$1" = "users" ]; then
-    run_single "users" "simple"
+    run_single "users" "allure"
     exit $?
 fi
 
-if [ "$1" = "licenses" ]; then
-    run_single "licenses" "simple"
+if [ "$1" = "licenses" ] || [ "$1" = "licences" ]; then
+    run_single "licenses" "allure"
     exit $?
 fi
 
