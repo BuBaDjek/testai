@@ -1133,6 +1133,536 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверка ошибки при нулевом количестве лицензий (concurrentCount=0). Продукт Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии с количеством 0 для всех периодов (Месяц, Три месяца, Год, Бессрочно), проверка что сервер возвращает ошибку валидации - единовременное количество единиц не может быть отрицательным",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses/getlicenserequest?concurrentCount=0&licenseType=1 (Месяц, count=0)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var now = new Date();",
+                      "var todayISO = now.toISOString();",
+                      "pm.environment.set(\"licenseStartDateZero\", todayISO);",
+                      "console.log(\"STEP 1: Today's date (ISO): \" + todayISO);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=0 (Месяц)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is 0\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(0);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 1: Validation error for Month (licenseType=1, concurrentCount=0): \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateZero}}&licenseType=1&concurrentCount=0&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateZero}}" },
+                    { "key": "licenseType", "value": "1" },
+                    { "key": "concurrentCount", "value": "0" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/getlicenserequest?concurrentCount=0&licenseType=2 (Три месяца, count=0)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=0 (Три месяца)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is 0\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(0);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Validation error for Three months (licenseType=2, concurrentCount=0): \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateZero}}&licenseType=2&concurrentCount=0&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateZero}}" },
+                    { "key": "licenseType", "value": "2" },
+                    { "key": "concurrentCount", "value": "0" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest?concurrentCount=0&licenseType=3 (Год, count=0)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=0 (Год)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is 0\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(0);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Validation error for Year (licenseType=3, concurrentCount=0): \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateZero}}&licenseType=3&concurrentCount=0&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateZero}}" },
+                    { "key": "licenseType", "value": "3" },
+                    { "key": "concurrentCount", "value": "0" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/licenses/getlicenserequest?concurrentCount=0&licenseType=4 (Бессрочно, count=0)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=0 (Бессрочно)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is 0\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(0);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Validation error for Perpetual (licenseType=4, concurrentCount=0): \" + JSON.stringify(json));",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"licenseStartDateZero\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateZero}}&licenseType=4&concurrentCount=0&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateZero}}" },
+                    { "key": "licenseType", "value": "4" },
+                    { "key": "concurrentCount", "value": "0" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверка ошибки при отрицательном количестве лицензий (concurrentCount=-1). Продукт Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии с количеством -1 для всех периодов (Месяц, Три месяца, Год, Бессрочно), проверка что сервер возвращает ошибку валидации - единовременное количество единиц не может быть отрицательным",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses/getlicenserequest?concurrentCount=-1&licenseType=1 (Месяц, count=-1)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var now = new Date();",
+                      "var todayISO = now.toISOString();",
+                      "pm.environment.set(\"licenseStartDateNeg\", todayISO);",
+                      "console.log(\"STEP 1: Today's date (ISO): \" + todayISO);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=-1 (Месяц)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is -1\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(-1);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 1: Validation error for Month (licenseType=1, concurrentCount=-1): \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateNeg}}&licenseType=1&concurrentCount=-1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateNeg}}" },
+                    { "key": "licenseType", "value": "1" },
+                    { "key": "concurrentCount", "value": "-1" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/getlicenserequest?concurrentCount=-1&licenseType=2 (Три месяца, count=-1)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=-1 (Три месяца)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is -1\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(-1);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Validation error for Three months (licenseType=2, concurrentCount=-1): \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateNeg}}&licenseType=2&concurrentCount=-1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateNeg}}" },
+                    { "key": "licenseType", "value": "2" },
+                    { "key": "concurrentCount", "value": "-1" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest?concurrentCount=-1&licenseType=3 (Год, count=-1)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=-1 (Год)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is -1\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(-1);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Validation error for Year (licenseType=3, concurrentCount=-1): \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateNeg}}&licenseType=3&concurrentCount=-1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateNeg}}" },
+                    { "key": "licenseType", "value": "3" },
+                    { "key": "concurrentCount", "value": "-1" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/licenses/getlicenserequest?concurrentCount=-1&licenseType=4 (Бессрочно, count=-1)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request при concurrentCount=-1 (Бессрочно)\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is ConcurrentCount\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error message: единовременное количество не может быть отрицательным\", function () {",
+                      "    pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\");",
+                      "});",
+                      "",
+                      "pm.test(\"Error code is GreaterThanValidator\", function () {",
+                      "    pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Attempted value is -1\", function () {",
+                      "    pm.expect(json.errors[0].attemptedValue).to.equal(-1);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Validation error for Perpetual (licenseType=4, concurrentCount=-1): \" + JSON.stringify(json));",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"licenseStartDateNeg\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateNeg}}&licenseType=4&concurrentCount=-1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateNeg}}" },
+                    { "key": "licenseType", "value": "4" },
+                    { "key": "concurrentCount", "value": "-1" },
+                    { "key": "primoSystem", "value": "0" }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }
