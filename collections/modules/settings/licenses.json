@@ -870,6 +870,269 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверка запроса лицензии на бессрочный период. Продукт Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии на сегодняшнюю дату, период Бессрочно, количество 1, продукт Primo RPA AI Server, проверка содержимого файла (type=perpetual, count=1, date=today)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Лицензии получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "console.log(\"STEP 1: Current licenses: \" + JSON.stringify(json));",
+                      "",
+                      "pm.test(\"Licenses array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 1: Licenses list retrieved\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Продукты получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Products array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"Product 'Primo RPA AI Server' exists\", function () {",
+                      "    var serverProduct = json.find(function(p) { return p.name === \"Primo RPA AI Server\"; });",
+                      "    pm.expect(serverProduct).to.not.be.undefined;",
+                      "    pm.environment.set(\"licenseProductIdPerpetual\", serverProduct.id);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Products: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses/products"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Запрос бессрочной лицензии)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Получаем сегодняшнюю дату в формате ISO для запроса",
+                      "var now = new Date();",
+                      "var todayISO = now.toISOString();",
+                      "var todayShort = now.toISOString().split('T')[0];",
+                      "",
+                      "pm.environment.set(\"licenseStartDatePerpetual\", todayISO);",
+                      "pm.environment.set(\"licenseStartDateShortPerpetual\", todayShort);",
+                      "",
+                      "console.log(\"STEP 3: Today's date (ISO): \" + todayISO);",
+                      "console.log(\"STEP 3: Today's date (Short): \" + todayShort);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Запрос лицензии выполнен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Проверяем что ответ это файл для скачивания",
+                      "pm.test(\"Response is octet-stream\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\");",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Disposition header contains filename\", function () {",
+                      "    var contentDisposition = pm.response.headers.get(\"Content-Disposition\");",
+                      "    pm.expect(contentDisposition).to.include(\"licensereq\");",
+                      "});",
+                      "",
+                      "// Получаем содержимое файла",
+                      "var fileContent = pm.response.text();",
+                      "console.log(\"STEP 3: License file content:\\n\" + fileContent);",
+                      "",
+                      "pm.environment.set(\"licenseFileContentPerpetual\", fileContent);",
+                      "",
+                      "console.log(\"STEP 3: License request file received\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDatePerpetual}}&licenseType=4&concurrentCount=1&primoSystem=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    {
+                      "key": "startDate",
+                      "value": "{{licenseStartDatePerpetual}}"
+                    },
+                    {
+                      "key": "licenseType",
+                      "value": "4"
+                    },
+                    {
+                      "key": "concurrentCount",
+                      "value": "1"
+                    },
+                    {
+                      "key": "primoSystem",
+                      "value": "0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var fileContent = pm.environment.get(\"licenseFileContentPerpetual\");",
+                      "",
+                      "pm.test(\"License file content exists\", function () {",
+                      "    pm.expect(fileContent).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "// Проверяем что файл содержит XML структуру",
+                      "pm.test(\"License file contains XML structure\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<license>\");",
+                      "    pm.expect(fileContent).to.include(\"</license>\");",
+                      "});",
+                      "",
+                      "// Проверяем type = perpetual",
+                      "pm.test(\"License type is 'perpetual'\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<type>perpetual</type>\");",
+                      "});",
+                      "",
+                      "// Проверяем count = 1",
+                      "pm.test(\"License count is 1\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<count>1</count>\");",
+                      "});",
+                      "",
+                      "// Проверяем что дата в файле соответствует сегодняшней",
+                      "var todayShort = pm.environment.get(\"licenseStartDateShortPerpetual\");",
+                      "var dateMatch = todayShort.split('-').reverse().join('.'); // Конвертируем YYYY-MM-DD в DD.MM.YYYY",
+                      "",
+                      "pm.test(\"License date matches today's date\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<date>\" + dateMatch + \"</date>\");",
+                      "});",
+                      "",
+                      "// Проверяем что продукт = aistudio (Primo RPA AI Server)",
+                      "pm.test(\"License product is 'aistudio'\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<product>aistudio</product>\");",
+                      "});",
+                      "",
+                      "// Проверяем что ключ (key) заполнен",
+                      "pm.test(\"License key is filled\", function () {",
+                      "    var keyMatch = fileContent.match(/<key>([^<]+)<\\/key>/);",
+                      "    pm.expect(keyMatch).to.not.be.null;",
+                      "    pm.expect(keyMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что CPU заполнен",
+                      "pm.test(\"License CPU is filled\", function () {",
+                      "    var cpuMatch = fileContent.match(/<cpu>([^<]+)<\\/cpu>/);",
+                      "    pm.expect(cpuMatch).to.not.be.null;",
+                      "    pm.expect(cpuMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что HDD заполнен",
+                      "pm.test(\"License HDD is filled\", function () {",
+                      "    var hddMatch = fileContent.match(/<hdd>([^<]+)<\\/hdd>/);",
+                      "    pm.expect(hddMatch).to.not.be.null;",
+                      "    pm.expect(hddMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что user заполнен",
+                      "pm.test(\"License user is filled\", function () {",
+                      "    var userMatch = fileContent.match(/<user>([^<]+)<\\/user>/);",
+                      "    pm.expect(userMatch).to.not.be.null;",
+                      "    pm.expect(userMatch[1]).to.have.length.greaterThan(0);",
+                      "});",
+                      "",
+                      "// Проверяем что signature пустой (не заполнен)",
+                      "pm.test(\"License signature is empty\", function () {",
+                      "    pm.expect(fileContent).to.include(\"<signature></signature>\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: License file validation completed\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"licenseFileContentPerpetual\");",
+                      "pm.environment.unset(\"licenseProductIdPerpetual\");",
+                      "pm.environment.unset(\"licenseStartDatePerpetual\");",
+                      "pm.environment.unset(\"licenseStartDateShortPerpetual\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json, text/plain, */*"
+                  }
+                ],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            }
+          ]
         }
       ]
     }
