@@ -1663,6 +1663,300 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверка запроса лицензии на месяц. Продукт Агент Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии на сегодняшнюю дату, период Месяц, количество 1, продукт Агент Primo RPA AI Server, проверка содержимого файла (type=month, count=1, date=today, product=aiserveragent)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Лицензии получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Licenses array exists\", function () {",
+                      "    pm.expect(json).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 1: Licenses list retrieved\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Продукты получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Product 'Агент Primo RPA AI Server' exists\", function () {",
+                      "    var agentProduct = json.find(function(p) { return p.name === \"Агент Primo RPA AI Server\"; });",
+                      "    pm.expect(agentProduct).to.not.be.undefined;",
+                      "    pm.environment.set(\"licenseProductIdAgentM\", agentProduct.id);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Products: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses/products"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Запрос лицензии Агент на месяц)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var now = new Date();",
+                      "pm.environment.set(\"licenseStartDateAgentM\", now.toISOString());",
+                      "pm.environment.set(\"licenseStartDateShortAgentM\", now.toISOString().split('T')[0]);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Запрос лицензии выполнен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is octet-stream\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\");",
+                      "});",
+                      "",
+                      "var fileContent = pm.response.text();",
+                      "pm.environment.set(\"licenseFileContentAgentM\", fileContent);",
+                      "console.log(\"STEP 3: Agent license file received\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentM}}&licenseType=1&concurrentCount=1&primoSystem=1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "getlicenserequest"],
+                  "query": [
+                    { "key": "startDate", "value": "{{licenseStartDateAgentM}}" },
+                    { "key": "licenseType", "value": "1" },
+                    { "key": "concurrentCount", "value": "1" },
+                    { "key": "primoSystem", "value": "1" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var fc = pm.environment.get(\"licenseFileContentAgentM\");",
+                      "",
+                      "pm.test(\"License file content exists\", function () { pm.expect(fc).to.be.a(\"string\").and.not.empty; });",
+                      "pm.test(\"License file contains XML\", function () { pm.expect(fc).to.include(\"<license>\"); pm.expect(fc).to.include(\"</license>\"); });",
+                      "pm.test(\"License type is 'month'\", function () { pm.expect(fc).to.include(\"<type>month</type>\"); });",
+                      "pm.test(\"License count is 1\", function () { pm.expect(fc).to.include(\"<count>1</count>\"); });",
+                      "",
+                      "var todayShort = pm.environment.get(\"licenseStartDateShortAgentM\");",
+                      "pm.test(\"License date matches today\", function () { pm.expect(fc).to.include(\"<date>\" + todayShort.split('-').reverse().join('.') + \"</date>\"); });",
+                      "",
+                      "pm.test(\"License product is 'aiserveragent'\", function () { pm.expect(fc).to.include(\"<product>aiserveragent</product>\"); });",
+                      "pm.test(\"License key is filled\", function () { var m = fc.match(/<key>([^<]+)<\\/key>/); pm.expect(m).to.not.be.null; pm.expect(m[1]).to.have.length.greaterThan(0); });",
+                      "pm.test(\"License CPU is filled\", function () { var m = fc.match(/<cpu>([^<]+)<\\/cpu>/); pm.expect(m).to.not.be.null; pm.expect(m[1]).to.have.length.greaterThan(0); });",
+                      "pm.test(\"License HDD is filled\", function () { var m = fc.match(/<hdd>([^<]+)<\\/hdd>/); pm.expect(m).to.not.be.null; pm.expect(m[1]).to.have.length.greaterThan(0); });",
+                      "pm.test(\"License user is filled\", function () { var m = fc.match(/<user>([^<]+)<\\/user>/); pm.expect(m).to.not.be.null; pm.expect(m[1]).to.have.length.greaterThan(0); });",
+                      "pm.test(\"License signature is empty\", function () { pm.expect(fc).to.include(\"<signature></signature>\"); });",
+                      "",
+                      "pm.environment.unset(\"licenseFileContentAgentM\");",
+                      "pm.environment.unset(\"licenseProductIdAgentM\");",
+                      "pm.environment.unset(\"licenseStartDateAgentM\");",
+                      "pm.environment.unset(\"licenseStartDateShortAgentM\");"
+                    ]
+                  }
+                }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            }
+          ]
+        },
+        {
+          "name": "Проверка запроса лицензии на три месяца. Продукт Агент Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии на сегодняшнюю дату, период Три месяца, количество 1, продукт Агент Primo RPA AI Server, проверка содержимого файла (type=three_months, count=1, date=today, product=aiserveragent)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "pm.test(\"Licenses array exists\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "var json = pm.response.json();", "pm.test(\"Product 'Агент Primo RPA AI Server' exists\", function () {", "    var p = json.find(function(x) { return x.name === \"Агент Primo RPA AI Server\"; });", "    pm.expect(p).to.not.be.undefined;", "    pm.environment.set(\"licenseProductIdAgent3m\", p.id);", "});"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses/products" }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Запрос лицензии Агент на 3 месяца)",
+              "event": [
+                { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["var now = new Date();", "pm.environment.set(\"licenseStartDateAgent3m\", now.toISOString());", "pm.environment.set(\"licenseStartDateShortAgent3m\", now.toISOString().split('T')[0]);"] } },
+                { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "pm.test(\"Response is octet-stream\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\"); });", "pm.environment.set(\"licenseFileContentAgent3m\", pm.response.text());"] } }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgent3m}}&licenseType=2&concurrentCount=1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgent3m}}" }, { "key": "licenseType", "value": "2" }, { "key": "concurrentCount", "value": "1" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["var fc = pm.environment.get(\"licenseFileContentAgent3m\");", "pm.test(\"File exists\", function () { pm.expect(fc).to.be.a(\"string\").and.not.empty; });", "pm.test(\"XML structure\", function () { pm.expect(fc).to.include(\"<license>\"); pm.expect(fc).to.include(\"</license>\"); });", "pm.test(\"Type=three_months\", function () { pm.expect(fc).to.include(\"<type>three_months</type>\"); });", "pm.test(\"Count=1\", function () { pm.expect(fc).to.include(\"<count>1</count>\"); });", "var ts = pm.environment.get(\"licenseStartDateShortAgent3m\"); pm.test(\"Date matches today\", function () { pm.expect(fc).to.include(\"<date>\" + ts.split('-').reverse().join('.') + \"</date>\"); });", "pm.test(\"Product=aiserveragent\", function () { pm.expect(fc).to.include(\"<product>aiserveragent</product>\"); });", "pm.test(\"Key filled\", function () { var m = fc.match(/<key>([^<]+)<\\/key>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"CPU filled\", function () { var m = fc.match(/<cpu>([^<]+)<\\/cpu>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"HDD filled\", function () { var m = fc.match(/<hdd>([^<]+)<\\/hdd>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"User filled\", function () { var m = fc.match(/<user>([^<]+)<\\/user>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"Signature empty\", function () { pm.expect(fc).to.include(\"<signature></signature>\"); });", "pm.environment.unset(\"licenseFileContentAgent3m\"); pm.environment.unset(\"licenseProductIdAgent3m\"); pm.environment.unset(\"licenseStartDateAgent3m\"); pm.environment.unset(\"licenseStartDateShortAgent3m\");"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            }
+          ]
+        },
+        {
+          "name": "Проверка запроса лицензии на год. Продукт Агент Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии на сегодняшнюю дату, период Год, количество 1, продукт Агент Primo RPA AI Server, проверка содержимого файла (type=year, count=1, date=today, product=aiserveragent)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "pm.test(\"Licenses array exists\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "var json = pm.response.json();", "pm.test(\"Product 'Агент Primo RPA AI Server' exists\", function () {", "    var p = json.find(function(x) { return x.name === \"Агент Primo RPA AI Server\"; });", "    pm.expect(p).to.not.be.undefined;", "    pm.environment.set(\"licenseProductIdAgentY\", p.id);", "});"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses/products" }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Запрос лицензии Агент на год)",
+              "event": [
+                { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["var now = new Date();", "pm.environment.set(\"licenseStartDateAgentY\", now.toISOString());", "pm.environment.set(\"licenseStartDateShortAgentY\", now.toISOString().split('T')[0]);"] } },
+                { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "pm.test(\"Response is octet-stream\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\"); });", "pm.environment.set(\"licenseFileContentAgentY\", pm.response.text());"] } }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentY}}&licenseType=3&concurrentCount=1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentY}}" }, { "key": "licenseType", "value": "3" }, { "key": "concurrentCount", "value": "1" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["var fc = pm.environment.get(\"licenseFileContentAgentY\");", "pm.test(\"File exists\", function () { pm.expect(fc).to.be.a(\"string\").and.not.empty; });", "pm.test(\"XML structure\", function () { pm.expect(fc).to.include(\"<license>\"); pm.expect(fc).to.include(\"</license>\"); });", "pm.test(\"Type=year\", function () { pm.expect(fc).to.include(\"<type>year</type>\"); });", "pm.test(\"Count=1\", function () { pm.expect(fc).to.include(\"<count>1</count>\"); });", "var ts = pm.environment.get(\"licenseStartDateShortAgentY\"); pm.test(\"Date matches today\", function () { pm.expect(fc).to.include(\"<date>\" + ts.split('-').reverse().join('.') + \"</date>\"); });", "pm.test(\"Product=aiserveragent\", function () { pm.expect(fc).to.include(\"<product>aiserveragent</product>\"); });", "pm.test(\"Key filled\", function () { var m = fc.match(/<key>([^<]+)<\\/key>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"CPU filled\", function () { var m = fc.match(/<cpu>([^<]+)<\\/cpu>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"HDD filled\", function () { var m = fc.match(/<hdd>([^<]+)<\\/hdd>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"User filled\", function () { var m = fc.match(/<user>([^<]+)<\\/user>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"Signature empty\", function () { pm.expect(fc).to.include(\"<signature></signature>\"); });", "pm.environment.unset(\"licenseFileContentAgentY\"); pm.environment.unset(\"licenseProductIdAgentY\"); pm.environment.unset(\"licenseStartDateAgentY\"); pm.environment.unset(\"licenseStartDateShortAgentY\");"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            }
+          ]
+        },
+        {
+          "name": "Проверка запроса лицензии на бессрочный период. Продукт Агент Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии на сегодняшнюю дату, период Бессрочно, количество 1, продукт Агент Primo RPA AI Server, проверка содержимого файла (type=perpetual, count=1, date=today, product=aiserveragent)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить текущие лицензии)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "pm.test(\"Licenses array exists\", function () { pm.expect(pm.response.json()).to.be.an(\"array\"); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            },
+            {
+              "name": "STEP 2 - GET /api/licenses/products (Получить список продуктов)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "var json = pm.response.json();", "pm.test(\"Product 'Агент Primo RPA AI Server' exists\", function () {", "    var p = json.find(function(x) { return x.name === \"Агент Primo RPA AI Server\"; });", "    pm.expect(p).to.not.be.undefined;", "    pm.environment.set(\"licenseProductIdAgentP\", p.id);", "});"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses/products" }
+            },
+            {
+              "name": "STEP 3 - GET /api/licenses/getlicenserequest (Запрос бессрочной лицензии Агент)",
+              "event": [
+                { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["var now = new Date();", "pm.environment.set(\"licenseStartDateAgentP\", now.toISOString());", "pm.environment.set(\"licenseStartDateShortAgentP\", now.toISOString().split('T')[0]);"] } },
+                { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });", "pm.test(\"Response is octet-stream\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\"); });", "pm.environment.set(\"licenseFileContentAgentP\", pm.response.text());"] } }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentP}}&licenseType=4&concurrentCount=1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentP}}" }, { "key": "licenseType", "value": "4" }, { "key": "concurrentCount", "value": "1" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 4 - Проверка содержимого файла лицензии",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["var fc = pm.environment.get(\"licenseFileContentAgentP\");", "pm.test(\"File exists\", function () { pm.expect(fc).to.be.a(\"string\").and.not.empty; });", "pm.test(\"XML structure\", function () { pm.expect(fc).to.include(\"<license>\"); pm.expect(fc).to.include(\"</license>\"); });", "pm.test(\"Type=perpetual\", function () { pm.expect(fc).to.include(\"<type>perpetual</type>\"); });", "pm.test(\"Count=1\", function () { pm.expect(fc).to.include(\"<count>1</count>\"); });", "var ts = pm.environment.get(\"licenseStartDateShortAgentP\"); pm.test(\"Date matches today\", function () { pm.expect(fc).to.include(\"<date>\" + ts.split('-').reverse().join('.') + \"</date>\"); });", "pm.test(\"Product=aiserveragent\", function () { pm.expect(fc).to.include(\"<product>aiserveragent</product>\"); });", "pm.test(\"Key filled\", function () { var m = fc.match(/<key>([^<]+)<\\/key>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"CPU filled\", function () { var m = fc.match(/<cpu>([^<]+)<\\/cpu>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"HDD filled\", function () { var m = fc.match(/<hdd>([^<]+)<\\/hdd>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"User filled\", function () { var m = fc.match(/<user>([^<]+)<\\/user>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });", "pm.test(\"Signature empty\", function () { pm.expect(fc).to.include(\"<signature></signature>\"); });", "pm.environment.unset(\"licenseFileContentAgentP\"); pm.environment.unset(\"licenseProductIdAgentP\"); pm.environment.unset(\"licenseStartDateAgentP\"); pm.environment.unset(\"licenseStartDateShortAgentP\");"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            }
+          ]
+        },
+        {
+          "name": "Проверка ошибки при нулевом количестве лицензий (concurrentCount=0). Продукт Агент Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии Агента с количеством 0 для всех периодов, проверка ошибки валидации",
+          "item": [
+            {
+              "name": "STEP 1 - concurrentCount=0, licenseType=1 (Месяц, Агент)",
+              "event": [
+                { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["var now = new Date();", "pm.environment.set(\"licenseStartDateAgentZero\", now.toISOString());"] } },
+                { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 - Bad Request при concurrentCount=0 (Месяц, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Error code is GreaterThanValidator\", function () { pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\"); });", "pm.test(\"Attempted value is 0\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(0); });"] } }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentZero}}&licenseType=1&concurrentCount=0&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentZero}}" }, { "key": "licenseType", "value": "1" }, { "key": "concurrentCount", "value": "0" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 2 - concurrentCount=0, licenseType=2 (Три месяца, Агент)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 (Три месяца, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Attempted value is 0\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(0); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentZero}}&licenseType=2&concurrentCount=0&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentZero}}" }, { "key": "licenseType", "value": "2" }, { "key": "concurrentCount", "value": "0" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 3 - concurrentCount=0, licenseType=3 (Год, Агент)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 (Год, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Attempted value is 0\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(0); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentZero}}&licenseType=3&concurrentCount=0&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentZero}}" }, { "key": "licenseType", "value": "3" }, { "key": "concurrentCount", "value": "0" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 4 - concurrentCount=0, licenseType=4 (Бессрочно, Агент)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 (Бессрочно, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Error code is GreaterThanValidator\", function () { pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\"); });", "pm.test(\"Attempted value is 0\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(0); });", "pm.environment.unset(\"licenseStartDateAgentZero\");"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentZero}}&licenseType=4&concurrentCount=0&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentZero}}" }, { "key": "licenseType", "value": "4" }, { "key": "concurrentCount", "value": "0" }, { "key": "primoSystem", "value": "1" }] } }
+            }
+          ]
+        },
+        {
+          "name": "Проверка ошибки при отрицательном количестве лицензий (concurrentCount=-1). Продукт Агент Primo RPA AI Server",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, запрос лицензии Агента с количествм -1 для всех периодов, проверка ошибки валидации",
+          "item": [
+            {
+              "name": "STEP 1 - concurrentCount=-1, licenseType=1 (Месяц, Агент)",
+              "event": [
+                { "listen": "prerequest", "script": { "type": "text/javascript", "exec": ["var now = new Date();", "pm.environment.set(\"licenseStartDateAgentNeg\", now.toISOString());"] } },
+                { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 - Bad Request при concurrentCount=-1 (Месяц, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Error code is GreaterThanValidator\", function () { pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\"); });", "pm.test(\"Attempted value is -1\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(-1); });"] } }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentNeg}}&licenseType=1&concurrentCount=-1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentNeg}}" }, { "key": "licenseType", "value": "1" }, { "key": "concurrentCount", "value": "-1" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 2 - concurrentCount=-1, licenseType=2 (Три месяца, Агент)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 (Три месяца, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Attempted value is -1\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(-1); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentNeg}}&licenseType=2&concurrentCount=-1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentNeg}}" }, { "key": "licenseType", "value": "2" }, { "key": "concurrentCount", "value": "-1" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 3 - concurrentCount=-1, licenseType=3 (Год, Агент)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 (Год, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Attempted value is -1\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(-1); });"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentNeg}}&licenseType=3&concurrentCount=-1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentNeg}}" }, { "key": "licenseType", "value": "3" }, { "key": "concurrentCount", "value": "-1" }, { "key": "primoSystem", "value": "1" }] } }
+            },
+            {
+              "name": "STEP 4 - concurrentCount=-1, licenseType=4 (Бессрочно, Агент)",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test(\"Status 400 (Бессрочно, Агент)\", function () { pm.response.to.have.status(400); });", "var json = pm.response.json();", "pm.test(\"isValid is false\", function () { pm.expect(json.isValid).to.be.false; });", "pm.test(\"Error field is ConcurrentCount\", function () { pm.expect(json.errors[0].propertyName).to.equal(\"ConcurrentCount\"); });", "pm.test(\"Error message: не может быть отрицательным\", function () { pm.expect(json.errors[0].errorMessage).to.include(\"не может быть отрицательным\"); });", "pm.test(\"Error code is GreaterThanValidator\", function () { pm.expect(json.errors[0].errorCode).to.equal(\"GreaterThanValidator\"); });", "pm.test(\"Attempted value is -1\", function () { pm.expect(json.errors[0].attemptedValue).to.equal(-1); });", "pm.environment.unset(\"licenseStartDateAgentNeg\");"] } }],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": { "raw": "{{baseUrl}}/api/licenses/getlicenserequest?startDate={{licenseStartDateAgentNeg}}&licenseType=4&concurrentCount=-1&primoSystem=1", "host": ["{{baseUrl}}"], "path": ["api", "licenses", "getlicenserequest"], "query": [{ "key": "startDate", "value": "{{licenseStartDateAgentNeg}}" }, { "key": "licenseType", "value": "4" }, { "key": "concurrentCount", "value": "-1" }, { "key": "primoSystem", "value": "1" }] } }
+            }
+          ]
         }
       ]
     }
