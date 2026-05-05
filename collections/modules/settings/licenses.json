@@ -2134,6 +2134,367 @@
               }
             }
           ]
+        },
+        {
+          "name": "Выдача лицензии на другой тенант",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, попытка сменить тенант для лицензии Primo RPA AI Server (ошибка 409), успешная смена тенанта для Агента (BUCH, DIST), возврат в исходное положение",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/licenses (Получить список лицензий)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Licenses array is not empty\", function () { pm.expect(json).to.be.an(\"array\").and.not.empty; });",
+                      "",
+                      "// Находим лицензию Primo RPA AI Server (primoSystem=0)",
+                      "var serverLic = json.find(function(l) { return l.primoSystem === 0; });",
+                      "pm.test(\"Primo RPA AI Server license exists\", function () { pm.expect(serverLic).to.not.be.undefined; });",
+                      "",
+                      "// Находим лицензию Агент (primoSystem=1)",
+                      "var agentLic = json.find(function(l) { return l.primoSystem === 1; });",
+                      "pm.test(\"Agent license exists\", function () { pm.expect(agentLic).to.not.be.undefined; });",
+                      "",
+                      "if (serverLic) {",
+                      "    pm.environment.set(\"serverLicenseId\", serverLic.id);",
+                      "    pm.environment.set(\"serverLicenseOriginalTenantId\", serverLic.tenantId);",
+                      "}",
+                      "if (agentLic) {",
+                      "    pm.environment.set(\"agentLicenseId\", agentLic.id);",
+                      "    pm.environment.set(\"agentLicenseOriginalTenantId\", agentLic.tenantId);",
+                      "}",
+                      "",
+                      "console.log(\"STEP 1: Server license ID=\" + (serverLic ? serverLic.id : \"N/A\") + \", Agent license ID=\" + (agentLic ? agentLic.id : \"N/A\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /auth/account/tenants (Получить список тенантов)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Tenants array is not empty\", function () { pm.expect(json).to.be.an(\"array\").and.not.empty; });",
+                      "",
+                      "var buch = json.find(function(t) { return t.id === \"BUCH\"; });",
+                      "var dist = json.find(function(t) { return t.id === \"DIST\"; });",
+                      "pm.test(\"Tenant BUCH exists\", function () { pm.expect(buch).to.not.be.undefined; });",
+                      "pm.test(\"Tenant DIST exists\", function () { pm.expect(dist).to.not.be.undefined; });",
+                      "",
+                      "console.log(\"STEP 2: Tenants: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/auth/account/tenants"
+              }
+            },
+            {
+              "name": "STEP 3 - PUT /api/licenses/{serverId}/tenant BUCH (Ошибка для Primo RPA AI Server)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 409 - Базовая лицензия не может быть передана тенанту (BUCH)\", function () {",
+                      "    pm.response.to.have.status(409);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Error message: Базовая лицензия не может быть передана тенанту\", function () {",
+                      "    pm.expect(json.name).to.include(\"Базовая лицензия не может быть передана тенанту\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Server license tenant BUCH error: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\"tenantId\":\"BUCH\"}", "options": { "raw": { "language": "json" } } },
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/{{serverLicenseId}}/tenant",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "{{serverLicenseId}}", "tenant"]
+                }
+              }
+            },
+            {
+              "name": "STEP 4 - PUT /api/licenses/{serverId}/tenant DIST (Ошибка для Primo RPA AI Server)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 409 - Базовая лицензия не может быть передана тенанту (DIST)\", function () {",
+                      "    pm.response.to.have.status(409);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Error message: Базовая лицензия не может быть передана тенанту\", function () {",
+                      "    pm.expect(json.name).to.include(\"Базовая лицензия не может быть передана тенанту\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Server license tenant DIST error: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\"tenantId\":\"DIST\"}", "options": { "raw": { "language": "json" } } },
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/{{serverLicenseId}}/tenant",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "{{serverLicenseId}}", "tenant"]
+                }
+              }
+            },
+            {
+              "name": "STEP 5 - GET /api/licenses (Проверка: тенант Server не изменился)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var serverLic = json.find(function(l) { return l.primoSystem === 0; });",
+                      "pm.test(\"Server license tenant unchanged (null)\", function () {",
+                      "    pm.expect(serverLic.tenantId).to.be.null;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Server license tenantId=\" + serverLic.tenantId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 6 - PUT /api/licenses/{agentId}/tenant BUCH (Успех для Агента)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 204 - Тенант Агента успешно изменен на BUCH\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: Agent license tenant set to BUCH\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\"tenantId\":\"BUCH\"}", "options": { "raw": { "language": "json" } } },
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/{{agentLicenseId}}/tenant",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "{{agentLicenseId}}", "tenant"]
+                }
+              }
+            },
+            {
+              "name": "STEP 7 - GET /api/licenses (Проверка: тенант Агента = BUCH)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var agentLic = json.find(function(l) { return l.primoSystem === 1; });",
+                      "pm.test(\"Agent license tenantId is BUCH\", function () {",
+                      "    pm.expect(agentLic.tenantId).to.equal(\"BUCH\");",
+                      "});",
+                      "pm.test(\"Agent license tenantName is BUCH\", function () {",
+                      "    pm.expect(agentLic.tenantName).to.equal(\"BUCH\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 7: Agent license tenantId=\" + agentLic.tenantId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 8 - PUT /api/licenses/{agentId}/tenant DIST (Успех для Агента)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 204 - Тенант Агента успешно изменен на DIST\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 8: Agent license tenant set to DIST\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\"tenantId\":\"DIST\"}", "options": { "raw": { "language": "json" } } },
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/{{agentLicenseId}}/tenant",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "{{agentLicenseId}}", "tenant"]
+                }
+              }
+            },
+            {
+              "name": "STEP 9 - GET /api/licenses (Проверка: тенант Агента = DIST)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var agentLic = json.find(function(l) { return l.primoSystem === 1; });",
+                      "pm.test(\"Agent license tenantId is DIST\", function () {",
+                      "    pm.expect(agentLic.tenantId).to.equal(\"DIST\");",
+                      "});",
+                      "pm.test(\"Agent license tenantName is DIST\", function () {",
+                      "    pm.expect(agentLic.tenantName).to.equal(\"DIST\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 9: Agent license tenantId=\" + agentLic.tenantId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            },
+            {
+              "name": "STEP 10 - PUT /api/licenses/{agentId}/tenant null (Возврат исходного тенанта)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 204 - Тенант Агента возвращен в исходное положение\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 10: Agent license tenant restored to null\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "mode": "raw", "raw": "{\"tenantId\":null}", "options": { "raw": { "language": "json" } } },
+                "url": {
+                  "raw": "{{baseUrl}}/api/licenses/{{agentLicenseId}}/tenant",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "licenses", "{{agentLicenseId}}", "tenant"]
+                }
+              }
+            },
+            {
+              "name": "STEP 11 - GET /api/licenses (Проверка: тенант Агента восстановлен)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var agentLic = json.find(function(l) { return l.primoSystem === 1; });",
+                      "pm.test(\"Agent license tenantId restored to null\", function () {",
+                      "    pm.expect(agentLic.tenantId).to.be.null;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 11: Agent license tenantId restored=\" + agentLic.tenantId);",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"serverLicenseId\");",
+                      "pm.environment.unset(\"serverLicenseOriginalTenantId\");",
+                      "pm.environment.unset(\"agentLicenseId\");",
+                      "pm.environment.unset(\"agentLicenseOriginalTenantId\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/licenses"
+              }
+            }
+          ]
         }
       ]
     }
