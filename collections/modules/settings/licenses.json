@@ -1960,7 +1960,7 @@
         },
         {
           "name": "Скачивание лицензии",
-          "description": "Тест-кейс: Переход в Настройки->Лицензии, выбор лицензии из списка, нажатие кнопки скачать, проверка что в скачанном файле все поля заполнены, включая signature",
+          "description": "Тест-кейс: Переход в Настройки->Лицензии, скачивание лицензии Primo RPA AI Server и Агент Primo RPA AI Server, проверка что в скачанных файлах все поля заполнены, включая signature",
           "item": [
             {
               "name": "STEP 1 - GET /api/licenses (Получить список лицензий)",
@@ -1979,14 +1979,16 @@
                       "    pm.expect(json).to.be.an(\"array\").and.not.empty;",
                       "});",
                       "",
-                      "// Сохраняем ID первой лицензии для скачивания",
-                      "pm.environment.set(\"downloadLicenseId\", json[0].id);",
-                      "pm.environment.set(\"downloadLicenseKey\", json[0].key);",
-                      "pm.environment.set(\"downloadLicenseType\", json[0].type);",
-                      "pm.environment.set(\"downloadLicenseConcurrentCount\", json[0].concurrentCount);",
-                      "pm.environment.set(\"downloadLicensePrimoSystem\", json[0].primoSystem);",
+                      "var serverLic = json.find(function(l) { return l.primoSystem === 0; });",
+                      "pm.test(\"Primo RPA AI Server license exists\", function () { pm.expect(serverLic).to.not.be.undefined; });",
                       "",
-                      "console.log(\"STEP 1: First license ID=\" + json[0].id + \", key=\" + json[0].key);"
+                      "var agentLic = json.find(function(l) { return l.primoSystem === 1; });",
+                      "pm.test(\"Agent license exists\", function () { pm.expect(agentLic).to.not.be.undefined; });",
+                      "",
+                      "if (serverLic) { pm.environment.set(\"dlServerId\", serverLic.id); }",
+                      "if (agentLic) { pm.environment.set(\"dlAgentId\", agentLic.id); }",
+                      "",
+                      "console.log(\"STEP 1: Server ID=\" + (serverLic?serverLic.id:\"N/A\") + \", Agent ID=\" + (agentLic?agentLic.id:\"N/A\"));"
                     ]
                   }
                 }
@@ -1998,25 +2000,17 @@
               }
             },
             {
-              "name": "STEP 2 - GET /api/Licenses/{id}/Download (Скачать файл лицензии)",
+              "name": "STEP 2 - GET /api/Licenses/{serverId}/Download (Скачать Primo RPA AI Server)",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test(\"Status 200 - Файл лицензии скачан\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Response is octet-stream\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\");",
-                      "});",
-                      "",
-                      "var fileContent = pm.response.text();",
-                      "pm.environment.set(\"downloadedLicenseFile\", fileContent);",
-                      "",
-                      "console.log(\"STEP 2: License file downloaded, length=\" + fileContent.length);"
+                      "pm.test(\"Status 200 - Файл лицензии Server скачан\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response is octet-stream\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\"); });",
+                      "pm.environment.set(\"dlServerFile\", pm.response.text());",
+                      "console.log(\"STEP 2: Server license file downloaded\");"
                     ]
                   }
                 }
@@ -2024,105 +2018,48 @@
               "request": {
                 "method": "GET",
                 "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
-                "url": {
-                  "raw": "{{baseUrl}}/api/Licenses/{{downloadLicenseId}}/Download",
-                  "host": ["{{baseUrl}}"],
-                  "path": ["api", "Licenses", "{{downloadLicenseId}}", "Download"]
-                }
+                "url": { "raw": "{{baseUrl}}/api/Licenses/{{dlServerId}}/Download", "host": ["{{baseUrl}}"], "path": ["api", "Licenses", "{{dlServerId}}", "Download"] }
               }
             },
             {
-              "name": "STEP 3 - Проверка содержимого файла лицензии",
+              "name": "STEP 3 - Проверка файла лицензии Primo RPA AI Server",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "var fc = pm.environment.get(\"downloadedLicenseFile\");",
-                      "",
-                      "pm.test(\"License file content exists\", function () {",
-                      "    pm.expect(fc).to.be.a(\"string\").and.not.empty;",
-                      "});",
-                      "",
-                      "// Проверяем XML структуру",
-                      "pm.test(\"License file contains XML structure\", function () {",
-                      "    pm.expect(fc).to.include(\"<license>\");",
-                      "    pm.expect(fc).to.include(\"</license>\");",
-                      "});",
-                      "",
-                      "// Проверяем что key заполнен",
-                      "pm.test(\"License key is filled\", function () {",
-                      "    var keyMatch = fc.match(/<key>([^<]+)<\\/key>/);",
-                      "    pm.expect(keyMatch).to.not.be.null;",
-                      "    pm.expect(keyMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что CPU заполнен",
-                      "pm.test(\"License CPU is filled\", function () {",
-                      "    var cpuMatch = fc.match(/<cpu>([^<]+)<\\/cpu>/);",
-                      "    pm.expect(cpuMatch).to.not.be.null;",
-                      "    pm.expect(cpuMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что HDD заполнен",
-                      "pm.test(\"License HDD is filled\", function () {",
-                      "    var hddMatch = fc.match(/<hdd>([^<]+)<\\/hdd>/);",
-                      "    pm.expect(hddMatch).to.not.be.null;",
-                      "    pm.expect(hddMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что user заполнен",
-                      "pm.test(\"License user is filled\", function () {",
-                      "    var userMatch = fc.match(/<user>([^<]+)<\\/user>/);",
-                      "    pm.expect(userMatch).to.not.be.null;",
-                      "    pm.expect(userMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что product заполнен",
-                      "pm.test(\"License product is filled\", function () {",
-                      "    var productMatch = fc.match(/<product>([^<]+)<\\/product>/);",
-                      "    pm.expect(productMatch).to.not.be.null;",
-                      "    pm.expect(productMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что date заполнена",
-                      "pm.test(\"License date is filled\", function () {",
-                      "    var dateMatch = fc.match(/<date>([^<]+)<\\/date>/);",
-                      "    pm.expect(dateMatch).to.not.be.null;",
-                      "    pm.expect(dateMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что type заполнен",
-                      "pm.test(\"License type is filled\", function () {",
-                      "    var typeMatch = fc.match(/<type>([^<]+)<\\/type>/);",
-                      "    pm.expect(typeMatch).to.not.be.null;",
-                      "    pm.expect(typeMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Проверяем что count заполнен",
-                      "pm.test(\"License count is filled\", function () {",
-                      "    var countMatch = fc.match(/<count>([^<]+)<\\/count>/);",
-                      "    pm.expect(countMatch).to.not.be.null;",
-                      "    pm.expect(countMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "// Ключевая проверка: signature заполнен (не пустой)",
-                      "pm.test(\"License signature is filled (not empty)\", function () {",
-                      "    var sigMatch = fc.match(/<signature>([^<]+)<\\/signature>/);",
-                      "    pm.expect(sigMatch).to.not.be.null;",
-                      "    pm.expect(sigMatch[1]).to.have.length.greaterThan(0);",
-                      "});",
-                      "",
-                      "console.log(\"STEP 3: Downloaded license file validation completed\");",
-                      "",
-                      "// Очистка переменных",
-                      "pm.environment.unset(\"downloadedLicenseFile\");",
-                      "pm.environment.unset(\"downloadLicenseId\");",
-                      "pm.environment.unset(\"downloadLicenseKey\");",
-                      "pm.environment.unset(\"downloadLicenseType\");",
-                      "pm.environment.unset(\"downloadLicenseConcurrentCount\");",
-                      "pm.environment.unset(\"downloadLicensePrimoSystem\");"
+                      "var fc = pm.environment.get(\"dlServerFile\");",
+                      "pm.test(\"Server file exists\", function () { pm.expect(fc).to.be.a(\"string\").and.not.empty; });",
+                      "pm.test(\"Server XML structure\", function () { pm.expect(fc).to.include(\"<license>\"); pm.expect(fc).to.include(\"</license>\"); });",
+                      "pm.test(\"Server product=aistudio\", function () { pm.expect(fc).to.include(\"<product>aistudio</product>\"); });",
+                      "pm.test(\"Server key filled\", function () { var m = fc.match(/<key>([^<]+)<\\/key>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server CPU filled\", function () { var m = fc.match(/<cpu>([^<]+)<\\/cpu>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server HDD filled\", function () { var m = fc.match(/<hdd>([^<]+)<\\/hdd>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server user filled\", function () { var m = fc.match(/<user>([^<]+)<\\/user>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server date filled\", function () { var m = fc.match(/<date>([^<]+)<\\/date>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server type filled\", function () { var m = fc.match(/<type>([^<]+)<\\/type>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server count filled\", function () { var m = fc.match(/<count>([^<]+)<\\/count>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Server signature filled\", function () { var m = fc.match(/<signature>([^<]+)<\\/signature>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.environment.unset(\"dlServerFile\");"
+                    ]
+                  }
+                }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
+            },
+            {
+              "name": "STEP 4 - GET /api/Licenses/{agentId}/Download (Скачать Агент Primo RPA AI Server)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Файл лицензии Агент скачан\", function () { pm.response.to.have.status(200); });",
+                      "pm.test(\"Response is octet-stream\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"octet-stream\"); });",
+                      "pm.environment.set(\"dlAgentFile\", pm.response.text());",
+                      "console.log(\"STEP 4: Agent license file downloaded\");"
                     ]
                   }
                 }
@@ -2130,8 +2067,37 @@
               "request": {
                 "method": "GET",
                 "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
-                "url": "{{baseUrl}}/api/licenses"
+                "url": { "raw": "{{baseUrl}}/api/Licenses/{{dlAgentId}}/Download", "host": ["{{baseUrl}}"], "path": ["api", "Licenses", "{{dlAgentId}}", "Download"] }
               }
+            },
+            {
+              "name": "STEP 5 - Проверка файла лицензии Агент Primo RPA AI Server",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var fc = pm.environment.get(\"dlAgentFile\");",
+                      "pm.test(\"Agent file exists\", function () { pm.expect(fc).to.be.a(\"string\").and.not.empty; });",
+                      "pm.test(\"Agent XML structure\", function () { pm.expect(fc).to.include(\"<license>\"); pm.expect(fc).to.include(\"</license>\"); });",
+                      "pm.test(\"Agent product=aiserveragent\", function () { pm.expect(fc).to.include(\"<product>aiserveragent</product>\"); });",
+                      "pm.test(\"Agent key filled\", function () { var m = fc.match(/<key>([^<]+)<\\/key>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent CPU filled\", function () { var m = fc.match(/<cpu>([^<]+)<\\/cpu>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent HDD filled\", function () { var m = fc.match(/<hdd>([^<]+)<\\/hdd>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent user filled\", function () { var m = fc.match(/<user>([^<]+)<\\/user>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent date filled\", function () { var m = fc.match(/<date>([^<]+)<\\/date>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent type filled\", function () { var m = fc.match(/<type>([^<]+)<\\/type>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent count filled\", function () { var m = fc.match(/<count>([^<]+)<\\/count>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.test(\"Agent signature filled\", function () { var m = fc.match(/<signature>([^<]+)<\\/signature>/); pm.expect(m).to.not.be.null; pm.expect(m[1].length).above(0); });",
+                      "pm.environment.unset(\"dlAgentFile\");",
+                      "pm.environment.unset(\"dlServerId\");",
+                      "pm.environment.unset(\"dlAgentId\");"
+                    ]
+                  }
+                }
+              ],
+              "request": { "method": "GET", "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }], "url": "{{baseUrl}}/api/licenses" }
             }
           ]
         },
