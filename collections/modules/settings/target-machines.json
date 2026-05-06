@@ -299,6 +299,239 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить создание машины без обязательных полей",
+          "description": "Тест-кейс: Переход в Настройки->Целевые машины, попытка создать машину без IP (ошибка 400), попытка создать машину без Имени (ошибка 400), проверка что количество машин не изменилось",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Agents (Получить текущий список машин)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Список машин получен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.environment.set(\"initialMachinesCountNoReq\", json.totalCount);",
+                      "",
+                      "console.log(\"STEP 1: Initial machines count=\" + json.totalCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/Agents без IP (Имя заполнено, IP пустой)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is Ip\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    var ipErrors = json.errors.filter(function(e) { return e.propertyName === \"Ip\"; });",
+                      "    pm.expect(ipErrors.length).to.be.greaterThan(0);",
+                      "});",
+                      "",
+                      "pm.test(\"IP error message: не должен быть пустым\", function () {",
+                      "    var ipErrors = json.errors.filter(function(e) { return e.propertyName === \"Ip\"; });",
+                      "    pm.expect(ipErrors[0].errorMessage).to.include(\"не должен быть пустым\");",
+                      "});",
+                      "",
+                      "pm.test(\"IP error code is NotEmptyValidator\", function () {",
+                      "    var ipErrors = json.errors.filter(function(e) { return e.propertyName === \"Ip\"; });",
+                      "    pm.expect(ipErrors[0].errorCode).to.equal(\"NotEmptyValidator\");",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Error without IP: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"TestMachineNoIP\",\"description\":\"\",\"ip\":\"\",\"port\":\"\",\"userName\":null,\"userPassword\":null}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Agents (Проверка: машина без IP не создалась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"initialMachinesCountNoReq\"));",
+                      "",
+                      "pm.test(\"Machine count unchanged (no IP)\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Count unchanged after no-IP attempt\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 4 - POST /api/Agents без Имени (IP заполнен, Имя пустое)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 400 - Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"isValid is false\", function () {",
+                      "    pm.expect(json.isValid).to.be.false;",
+                      "});",
+                      "",
+                      "pm.test(\"Error field is Name\", function () {",
+                      "    pm.expect(json.errors).to.be.an(\"array\").and.not.empty;",
+                      "    var nameErrors = json.errors.filter(function(e) { return e.propertyName === \"Name\"; });",
+                      "    pm.expect(nameErrors.length).to.be.greaterThan(0);",
+                      "});",
+                      "",
+                      "pm.test(\"Name error message: не должно быть пустым\", function () {",
+                      "    var nameErrors = json.errors.filter(function(e) { return e.propertyName === \"Name\"; });",
+                      "    pm.expect(nameErrors[0].errorMessage).to.include(\"не должно быть пустым\");",
+                      "});",
+                      "",
+                      "pm.test(\"Name error code is NotEmptyValidator\", function () {",
+                      "    var nameErrors = json.errors.filter(function(e) { return e.propertyName === \"Name\"; });",
+                      "    pm.expect(nameErrors[0].errorCode).to.equal(\"NotEmptyValidator\");",
+                      "});",
+                      "",
+                      "pm.test(\"Name error: не должно быть короче 3 символов\", function () {",
+                      "    var nameErrors = json.errors.filter(function(e) { return e.propertyName === \"Name\"; });",
+                      "    var minLenError = nameErrors.find(function(e) { return e.errorCode === \"MinimumLengthValidator\"; });",
+                      "    pm.expect(minLenError).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Error without Name: \" + JSON.stringify(json));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"\",\"description\":\"\",\"ip\":\"1.1.1.1\",\"port\":\"\",\"userName\":null,\"userPassword\":null}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 5 - GET /api/Agents (Проверка: машина без Имени не создалась)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"initialMachinesCountNoReq\"));",
+                      "",
+                      "pm.test(\"Machine count unchanged (no Name)\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Count unchanged after no-Name attempt\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 6 - GET /api/Agents/ProcessSummary (Проверка: на главной вкладке машин не увеличилось)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"initialMachinesCountNoReq\"));",
+                      "",
+                      "pm.test(\"Machine count on main page unchanged\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: Main page count unchanged\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"initialMachinesCountNoReq\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents/ProcessSummary"
+              }
+            }
+          ]
         }
       ]
     }
