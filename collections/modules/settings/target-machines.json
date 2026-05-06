@@ -1284,6 +1284,594 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить разблокировку целевой машины",
+          "description": "Тест-кейс: Создать машину, заблокировать, проверить блокировку, разблокировать, проверить разблокировку во всех вкладках, удалить машину",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Agents (Получить текущий список машин)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Список машин получен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.environment.set(\"unblockInitialCount\", json.totalCount);",
+                      "",
+                      "console.log(\"STEP 1: Initial machines count=\" + json.totalCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/Agents (Создать машину)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.environment.set(\"unblockMachineName\", \"UnblockTestMachine\");",
+                      "pm.environment.set(\"unblockMachineIp\", \"5.5.5.5\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Машина создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var newId = pm.response.text();",
+                      "pm.test(\"Response contains new machine ID\", function () {",
+                      "    pm.expect(newId).to.not.be.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"unblockMachineId\", newId);",
+                      "",
+                      "console.log(\"STEP 2: Machine created with ID=\" + newId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"{{unblockMachineName}}\",\"description\":\"\",\"ip\":\"{{unblockMachineIp}}\",\"port\":\"\",\"userName\":null,\"userPassword\":null}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Agents (Проверка: машина создана)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"unblockInitialCount\"));",
+                      "var newId = pm.environment.get(\"unblockMachineId\");",
+                      "",
+                      "pm.test(\"Machine count increased by 1\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount + 1);",
+                      "});",
+                      "",
+                      "var createdMachine = json.result.find(function(m) { return m.id.toString() === newId; });",
+                      "pm.test(\"Created machine exists\", function () {",
+                      "    pm.expect(createdMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Machine is not disabled yet\", function () {",
+                      "    pm.expect(createdMachine.disabledAt).to.be.null;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Machine verified, id=\" + newId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 4 - PUT /api/Agents/{id}/disable (Заблокировать машину)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машина заблокирована\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Machine disabled, id=\" + pm.environment.get(\"unblockMachineId\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{unblockMachineId}}/disable",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{unblockMachineId}}", "disable"]
+                }
+              }
+            },
+            {
+              "name": "STEP 5 - GET /api/Agents (Проверка: машина заблокирована в настройках)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var unblockId = pm.environment.get(\"unblockMachineId\");",
+                      "",
+                      "var blockedMachine = json.result.find(function(m) { return m.id.toString() === unblockId; });",
+                      "pm.test(\"Machine exists in list\", function () {",
+                      "    pm.expect(blockedMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Machine is disabled (disabledAt is set)\", function () {",
+                      "    pm.expect(blockedMachine.disabledAt).to.not.be.null;",
+                      "});",
+                      "",
+                      "pm.test(\"Machine available is false\", function () {",
+                      "    pm.expect(blockedMachine.available).to.be.false;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Machine blocked in settings, disabledAt=\" + blockedMachine.disabledAt);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 6 - PUT /api/Agents/{id}/enable (Разблокировать машину)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машина разблокирована\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: Machine enabled, id=\" + pm.environment.get(\"unblockMachineId\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{unblockMachineId}}/enable",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{unblockMachineId}}", "enable"]
+                }
+              }
+            },
+            {
+              "name": "STEP 7 - GET /api/Agents (Проверка: машина разблокирована в настройках)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var unblockId = pm.environment.get(\"unblockMachineId\");",
+                      "",
+                      "var unblockedMachine = json.result.find(function(m) { return m.id.toString() === unblockId; });",
+                      "pm.test(\"Machine exists in list\", function () {",
+                      "    pm.expect(unblockedMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Machine is unblocked (disabledAt is null)\", function () {",
+                      "    pm.expect(unblockedMachine.disabledAt).to.be.null;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 7: Machine unblocked in settings\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 8 - GET /api/Agents/ProcessSummary (Проверка: машина разблокирована на главной)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var unblockId = pm.environment.get(\"unblockMachineId\");",
+                      "",
+                      "var unblockedMachine = json.result.find(function(m) { return m.id.toString() === unblockId; });",
+                      "pm.test(\"Machine visible on main page\", function () {",
+                      "    pm.expect(unblockedMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Machine is unblocked on main page (disabledAt is null)\", function () {",
+                      "    pm.expect(unblockedMachine.disabledAt).to.be.null;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 8: Machine unblocked on main page\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents/ProcessSummary"
+              }
+            },
+            {
+              "name": "STEP 9 - GET /api/Agents/{id} (Проверка: машина разблокирована детально)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Machine disabledAt is null (unblocked)\", function () {",
+                      "    pm.expect(json.disabledAt).to.be.null;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 9: Machine detail verified as unblocked\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{unblockMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{unblockMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 10 - DELETE /api/Agents/{id} (Удалить машину)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машина удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 10: Machine deleted, id=\" + pm.environment.get(\"unblockMachineId\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{unblockMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{unblockMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 11 - GET /api/Agents (Проверка: машина удалена)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"unblockInitialCount\"));",
+                      "var unblockId = pm.environment.get(\"unblockMachineId\");",
+                      "",
+                      "pm.test(\"Machine count returned to initial\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount);",
+                      "});",
+                      "",
+                      "var deletedMachine = json.result.find(function(m) { return m.id.toString() === unblockId; });",
+                      "pm.test(\"Deleted machine not in list\", function () {",
+                      "    pm.expect(deletedMachine).to.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 11: Deletion verified\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"unblockInitialCount\");",
+                      "pm.environment.unset(\"unblockMachineId\");",
+                      "pm.environment.unset(\"unblockMachineName\");",
+                      "pm.environment.unset(\"unblockMachineIp\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить график Загрузка целевых машин",
+          "description": "Тест-кейс: Получить список машин, выбрать машину, проверить загрузку по компоненту Умный OCR (component=0), проверить загрузку по компоненту NLP (component=1)",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Agents (Получить список машин)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Список машин получен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"At least one machine exists\", function () {",
+                      "    pm.expect(json.result.length).to.be.greaterThan(0);",
+                      "});",
+                      "",
+                      "var firstMachine = json.result[0];",
+                      "pm.environment.set(\"loadMachineId\", firstMachine.id);",
+                      "pm.environment.set(\"loadMachineAgentSideId\", firstMachine.agentSideId);",
+                      "pm.environment.set(\"loadMachineName\", firstMachine.name);",
+                      "",
+                      "// Вычислить даты: последний месяц",
+                      "var now = new Date();",
+                      "var monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());",
+                      "pm.environment.set(\"loadDateFrom\", monthAgo.toISOString().split(\".\")[0]);",
+                      "pm.environment.set(\"loadDateTo\", now.toISOString().split(\".\")[0]);",
+                      "",
+                      "console.log(\"STEP 1: Machine: \" + firstMachine.name + \", agentSideId: \" + firstMachine.agentSideId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 2 - GET /logs/AgentLoad component=0 (Умный OCR)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "var now = new Date();",
+                      "var monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());",
+                      "pm.environment.set(\"loadDateFrom\", monthAgo.toISOString());",
+                      "pm.environment.set(\"loadDateTo\", now.toISOString());"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Данные загрузки Умный OCR получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has totalCount\", function () {",
+                      "    pm.expect(json.totalCount).to.be.a(\"number\");",
+                      "});",
+                      "",
+                      "pm.test(\"Response has filterCount\", function () {",
+                      "    pm.expect(json.filterCount).to.be.a(\"number\");",
+                      "});",
+                      "",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"Each result has agentId matching machine\", function () {",
+                      "    var agentId = pm.environment.get(\"loadMachineAgentSideId\");",
+                      "    json.result.forEach(function(item) {",
+                      "        pm.expect(item.agentId).to.equal(agentId);",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"Each result has component=0 (Умный OCR)\", function () {",
+                      "    json.result.forEach(function(item) {",
+                      "        pm.expect(item.component).to.equal(0);",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"Each result has load data fields\", function () {",
+                      "    json.result.forEach(function(item) {",
+                      "        pm.expect(item).to.have.property(\"totalRunningProcesses\");",
+                      "        pm.expect(item).to.have.property(\"totalInferenceLoad\");",
+                      "        pm.expect(item).to.have.property(\"detailedLoad\");",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log(\"STEP 2: Smart OCR load data received, totalCount=\" + json.totalCount + \", filterCount=\" + json.filterCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/logs/AgentLoad?agentId={{loadMachineAgentSideId}}&LogAt1={{loadDateFrom}}&LogAt2={{loadDateTo}}&component=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["logs", "AgentLoad"],
+                  "query": [
+                    { "key": "agentId", "value": "{{loadMachineAgentSideId}}" },
+                    { "key": "LogAt1", "value": "{{loadDateFrom}}" },
+                    { "key": "LogAt2", "value": "{{loadDateTo}}" },
+                    { "key": "component", "value": "0" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "STEP 3 - GET /logs/AgentLoad component=1 (NLP)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Данные загрузки NLP получены\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has totalCount\", function () {",
+                      "    pm.expect(json.totalCount).to.be.a(\"number\");",
+                      "});",
+                      "",
+                      "pm.test(\"Response has filterCount\", function () {",
+                      "    pm.expect(json.filterCount).to.be.a(\"number\");",
+                      "});",
+                      "",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.test(\"Each result has agentId matching machine\", function () {",
+                      "    var agentId = pm.environment.get(\"loadMachineAgentSideId\");",
+                      "    json.result.forEach(function(item) {",
+                      "        pm.expect(item.agentId).to.equal(agentId);",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"Each result has component=1 (NLP)\", function () {",
+                      "    json.result.forEach(function(item) {",
+                      "        pm.expect(item.component).to.equal(1);",
+                      "    });",
+                      "});",
+                      "",
+                      "pm.test(\"Each result has load data fields\", function () {",
+                      "    json.result.forEach(function(item) {",
+                      "        pm.expect(item).to.have.property(\"totalRunningProcesses\");",
+                      "        pm.expect(item).to.have.property(\"totalInferenceLoad\");",
+                      "        pm.expect(item).to.have.property(\"detailedLoad\");",
+                      "    });",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: NLP load data received, totalCount=\" + json.totalCount + \", filterCount=\" + json.filterCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/logs/AgentLoad?agentId={{loadMachineAgentSideId}}&LogAt1={{loadDateFrom}}&LogAt2={{loadDateTo}}&component=1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["logs", "AgentLoad"],
+                  "query": [
+                    { "key": "agentId", "value": "{{loadMachineAgentSideId}}" },
+                    { "key": "LogAt1", "value": "{{loadDateFrom}}" },
+                    { "key": "LogAt2", "value": "{{loadDateTo}}" },
+                    { "key": "component", "value": "1" }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     }
