@@ -532,6 +532,421 @@
               }
             }
           ]
+        },
+        {
+          "name": "Проверить редактирование целевой машины",
+          "description": "Тест-кейс: Создать машину с Имя и IP, проверить создание, отредактировать Имя/Port/IP, проверить что изменения отобразились во всех вкладках, удалить машину",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Agents (Получить текущий список машин)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Список машин получен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.environment.set(\"editInitialCount\", json.totalCount);",
+                      "",
+                      "console.log(\"STEP 1: Initial machines count=\" + json.totalCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/Agents (Создать машину)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.environment.set(\"editMachineName\", \"EditTestMachine\");",
+                      "pm.environment.set(\"editMachineIp\", \"2.2.2.2\");",
+                      "pm.environment.set(\"editMachinePort\", \"\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Машина создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var newId = pm.response.text();",
+                      "pm.test(\"Response contains new machine ID\", function () {",
+                      "    pm.expect(newId).to.not.be.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"editMachineId\", newId);",
+                      "",
+                      "console.log(\"STEP 2: Machine created with ID=\" + newId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"{{editMachineName}}\",\"description\":\"\",\"ip\":\"{{editMachineIp}}\",\"port\":\"{{editMachinePort}}\",\"userName\":null,\"userPassword\":null}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Agents (Проверка: машина создана в настройках)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"editInitialCount\"));",
+                      "var newId = pm.environment.get(\"editMachineId\");",
+                      "var newName = pm.environment.get(\"editMachineName\");",
+                      "var newIp = pm.environment.get(\"editMachineIp\");",
+                      "",
+                      "pm.test(\"Machine count increased by 1\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount + 1);",
+                      "});",
+                      "",
+                      "var createdMachine = json.result.find(function(m) { return m.id.toString() === newId; });",
+                      "pm.test(\"Created machine exists\", function () {",
+                      "    pm.expect(createdMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Created machine name matches\", function () {",
+                      "    pm.expect(createdMachine.name).to.equal(newName);",
+                      "});",
+                      "",
+                      "pm.test(\"Created machine IP matches\", function () {",
+                      "    pm.expect(createdMachine.ip).to.equal(newIp);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Machine verified in settings, id=\" + newId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/Agents/{id} (Получить agentSideId для редактирования)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var newId = pm.environment.get(\"editMachineId\");",
+                      "",
+                      "pm.test(\"Machine ID matches\", function () {",
+                      "    pm.expect(json.id.toString()).to.equal(newId);",
+                      "});",
+                      "",
+                      "pm.test(\"Machine has agentSideId\", function () {",
+                      "    pm.expect(json.agentSideId).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"editMachineAgentSideId\", json.agentSideId);",
+                      "",
+                      "console.log(\"STEP 4: Got agentSideId=\" + json.agentSideId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{editMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{editMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 5 - PUT /api/Agents/{id} (Редактировать Имя, IP, Порт)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.environment.set(\"editMachineNewName\", \"EditTestMachine_Upd\");",
+                      "pm.environment.set(\"editMachineNewIp\", \"3.3.3.3\");",
+                      "pm.environment.set(\"editMachineNewPort\", \"5005\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машина отредактирована\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Machine updated\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"{{editMachineNewName}}\",\"description\":\"\",\"ip\":\"{{editMachineNewIp}}\",\"port\":\"{{editMachineNewPort}}\",\"userName\":null,\"userPassword\":null,\"agentSideId\":\"{{editMachineAgentSideId}}\"}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{editMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{editMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 6 - GET /api/Agents/{id} (Проверка: поля отредактированы)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var newName = pm.environment.get(\"editMachineNewName\");",
+                      "var newIp = pm.environment.get(\"editMachineNewIp\");",
+                      "var newPort = pm.environment.get(\"editMachineNewPort\");",
+                      "",
+                      "pm.test(\"Name updated\", function () {",
+                      "    pm.expect(json.name).to.equal(newName);",
+                      "});",
+                      "",
+                      "pm.test(\"IP updated\", function () {",
+                      "    pm.expect(json.ip).to.equal(newIp);",
+                      "});",
+                      "",
+                      "pm.test(\"Port updated\", function () {",
+                      "    pm.expect(json.port.toString()).to.equal(newPort);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: Edit verified on machine detail, name=\" + json.name + \", ip=\" + json.ip + \", port=\" + json.port);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{editMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{editMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 7 - GET /api/Agents (Проверка: отредактированная машина в настройках)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var editId = pm.environment.get(\"editMachineId\");",
+                      "var newName = pm.environment.get(\"editMachineNewName\");",
+                      "var newIp = pm.environment.get(\"editMachineNewIp\");",
+                      "var newPort = pm.environment.get(\"editMachineNewPort\");",
+                      "",
+                      "var editedMachine = json.result.find(function(m) { return m.id.toString() === editId; });",
+                      "pm.test(\"Edited machine exists in list\", function () {",
+                      "    pm.expect(editedMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Name updated in settings list\", function () {",
+                      "    pm.expect(editedMachine.name).to.equal(newName);",
+                      "});",
+                      "",
+                      "pm.test(\"IP updated in settings list\", function () {",
+                      "    pm.expect(editedMachine.ip).to.equal(newIp);",
+                      "});",
+                      "",
+                      "pm.test(\"Port updated in settings list\", function () {",
+                      "    pm.expect(editedMachine.port.toString()).to.equal(newPort);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 7: Edit verified in settings list\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 8 - GET /api/Agents/ProcessSummary (Проверка: отредактированная машина на главной)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var editId = pm.environment.get(\"editMachineId\");",
+                      "var newName = pm.environment.get(\"editMachineNewName\");",
+                      "var newIp = pm.environment.get(\"editMachineNewIp\");",
+                      "var newPort = pm.environment.get(\"editMachineNewPort\");",
+                      "",
+                      "var editedMachine = json.result.find(function(m) { return m.id.toString() === editId; });",
+                      "pm.test(\"Edited machine visible on main page\", function () {",
+                      "    pm.expect(editedMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"Name updated on main page\", function () {",
+                      "    pm.expect(editedMachine.name).to.equal(newName);",
+                      "});",
+                      "",
+                      "pm.test(\"IP updated on main page\", function () {",
+                      "    pm.expect(editedMachine.ip).to.equal(newIp);",
+                      "});",
+                      "",
+                      "pm.test(\"Port updated on main page\", function () {",
+                      "    pm.expect(editedMachine.port.toString()).to.equal(newPort);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 8: Edit verified on main page\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents/ProcessSummary"
+              }
+            },
+            {
+              "name": "STEP 9 - DELETE /api/Agents/{id} (Удалить отредактированную машину)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машина удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 9: Machine deleted, id=\" + pm.environment.get(\"editMachineId\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{editMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{editMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 10 - GET /api/Agents (Проверка: машина удалена)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"editInitialCount\"));",
+                      "var editId = pm.environment.get(\"editMachineId\");",
+                      "",
+                      "pm.test(\"Machine count returned to initial\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount);",
+                      "});",
+                      "",
+                      "var deletedMachine = json.result.find(function(m) { return m.id.toString() === editId; });",
+                      "pm.test(\"Deleted machine not in list\", function () {",
+                      "    pm.expect(deletedMachine).to.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 10: Deletion verified\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"editInitialCount\");",
+                      "pm.environment.unset(\"editMachineId\");",
+                      "pm.environment.unset(\"editMachineName\");",
+                      "pm.environment.unset(\"editMachineIp\");",
+                      "pm.environment.unset(\"editMachinePort\");",
+                      "pm.environment.unset(\"editMachineAgentSideId\");",
+                      "pm.environment.unset(\"editMachineNewName\");",
+                      "pm.environment.unset(\"editMachineNewIp\");",
+                      "pm.environment.unset(\"editMachineNewPort\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            }
+          ]
         }
       ]
     }
