@@ -26,6 +26,7 @@ declare -a MODULES=(
     "settings/roles"
     "settings/users"
     "settings/licenses"
+    "settings/target-machines"
 )
 
 declare -a MODULE_NAMES=(
@@ -38,6 +39,7 @@ declare -a MODULE_NAMES=(
     "06 - Настройки → Роли"
     "07 - Настройки → Пользователи"
     "08 - Настройки → Лицензии"
+    "09 - Настройки → Целевые машины"
 )
 
 show_help() {
@@ -215,9 +217,13 @@ run_single() {
             module_path="settings/licenses"
             module_name="08 - Настройки → Лицензии"
             ;;
+        target-machines|tmachines)
+            module_path="settings/target-machines"
+            module_name="09 - Настройки → Целевые машины"
+            ;;
         *)
             echo "❌ Неизвестный модуль: $module_key"
-            echo "Доступные модули: auth, ocr, ai, func, home, machines, settings, users, licenses (или licences)"
+            echo "Доступные модули: auth, ocr, ai, func, home, machines, settings, users, licenses, target-machines"
             exit 1
             ;;
     esac
@@ -303,6 +309,11 @@ fi
 
 if [ "$1" = "licenses" ] || [ "$1" = "licences" ]; then
     run_single "licenses" "allure"
+    exit $?
+fi
+
+if [ "$1" = "target-machines" ] || [ "$1" = "tmachines" ]; then
+    run_single "target-machines" "allure"
     exit $?
 fi
 

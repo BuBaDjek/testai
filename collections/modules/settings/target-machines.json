@@ -1,0 +1,306 @@
+{
+  "info": {
+    "_postman_id": "settings-target-machines-001",
+    "name": "Настройки",
+    "description": "Тесты раздела Настройки",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "var token = pm.environment.get(\"token\");",
+          "if (token) {",
+          "    pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + token });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Целевые машины",
+      "item": [
+        {
+          "name": "Авто-логин",
+          "item": [
+            {
+              "name": "POST /auth/account (Login Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Успешная авторизация\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "",
+                      "pm.test(\"Token exists in response\", function () {",
+                      "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+                      "});",
+                      "",
+                      "if (json.token) {",
+                      "    pm.environment.set(\"token\", json.token);",
+                      "    console.log(\"Admin token saved\");",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "X-Client-Type", "value": "Browser" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/auth/account"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Проверить создание машины с обязательными полями",
+          "description": "Тест-кейс: Переход в Настройки->Целевые машины, создание машины с обязательными полями (Имя, IP), проверка что машина появилась на главной вкладке, на вкладке машины и в настройках-целевые машины, удаление созданной машины",
+          "item": [
+            {
+              "name": "STEP 1 - GET /api/Agents (Получить текущий список машин)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Список машин получен\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "var json = pm.response.json();",
+                      "pm.test(\"Response has result array\", function () {",
+                      "    pm.expect(json.result).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "pm.environment.set(\"initialMachinesCount\", json.totalCount);",
+                      "pm.environment.set(\"initialMachinesIds\", json.result.map(function(m) { return m.id; }).join(\",\"));",
+                      "",
+                      "console.log(\"STEP 1: Initial machines count=\" + json.totalCount);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 2 - POST /api/Agents (Создать машину с обязательными полями)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.environment.set(\"newMachineName\", \"AutoTestMachine\");",
+                      "pm.environment.set(\"newMachineIp\", \"1.1.1.1\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 201 - Машина создана\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "var newId = pm.response.text();",
+                      "pm.test(\"Response contains new machine ID\", function () {",
+                      "    pm.expect(newId).to.not.be.empty;",
+                      "});",
+                      "",
+                      "pm.environment.set(\"newMachineId\", newId);",
+                      "",
+                      "console.log(\"STEP 2: Machine created with ID=\" + newId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Accept", "value": "application/json, text/plain, */*" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"{{newMachineName}}\",\"description\":\"\",\"ip\":\"{{newMachineIp}}\",\"port\":\"\",\"userName\":null,\"userPassword\":null}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 3 - GET /api/Agents (Проверка: машина в настройках-целевые машины)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"initialMachinesCount\"));",
+                      "var newId = pm.environment.get(\"newMachineId\");",
+                      "var newName = pm.environment.get(\"newMachineName\");",
+                      "var newIp = pm.environment.get(\"newMachineIp\");",
+                      "",
+                      "pm.test(\"Machine count increased by 1\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount + 1);",
+                      "});",
+                      "",
+                      "var newMachine = json.result.find(function(m) { return m.id.toString() === newId; });",
+                      "pm.test(\"New machine exists in list\", function () {",
+                      "    pm.expect(newMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "pm.test(\"New machine name matches\", function () {",
+                      "    pm.expect(newMachine.name).to.equal(newName);",
+                      "});",
+                      "",
+                      "pm.test(\"New machine IP matches\", function () {",
+                      "    pm.expect(newMachine.ip).to.equal(newIp);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 3: Machine found in settings list, id=\" + newId + \", name=\" + newName);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            },
+            {
+              "name": "STEP 4 - GET /api/Agents/ProcessSummary (Проверка: машина на главной вкладке)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"initialMachinesCount\"));",
+                      "var newId = pm.environment.get(\"newMachineId\");",
+                      "",
+                      "pm.test(\"Machine count on main page increased by 1\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount + 1);",
+                      "});",
+                      "",
+                      "var newMachine = json.result.find(function(m) { return m.id.toString() === newId; });",
+                      "pm.test(\"New machine visible on main page\", function () {",
+                      "    pm.expect(newMachine).to.not.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 4: Machine found on main page, id=\" + newId);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents/ProcessSummary"
+              }
+            },
+            {
+              "name": "STEP 5 - DELETE /api/Agents/{id} (Удалить созданную машину)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200 - Машина удалена\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "console.log(\"STEP 5: Machine deleted, id=\" + pm.environment.get(\"newMachineId\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": {
+                  "raw": "{{baseUrl}}/api/Agents/{{newMachineId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "Agents", "{{newMachineId}}"]
+                }
+              }
+            },
+            {
+              "name": "STEP 6 - GET /api/Agents (Проверка: машина удалена из списка)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                      "",
+                      "var json = pm.response.json();",
+                      "var initialCount = parseInt(pm.environment.get(\"initialMachinesCount\"));",
+                      "var newId = pm.environment.get(\"newMachineId\");",
+                      "",
+                      "pm.test(\"Machine count returned to initial\", function () {",
+                      "    pm.expect(json.totalCount).to.equal(initialCount);",
+                      "});",
+                      "",
+                      "var deletedMachine = json.result.find(function(m) { return m.id.toString() === newId; });",
+                      "pm.test(\"Deleted machine not in list\", function () {",
+                      "    pm.expect(deletedMachine).to.be.undefined;",
+                      "});",
+                      "",
+                      "console.log(\"STEP 6: Machine deletion verified\");",
+                      "",
+                      "// Очистка переменных",
+                      "pm.environment.unset(\"newMachineId\");",
+                      "pm.environment.unset(\"newMachineName\");",
+                      "pm.environment.unset(\"newMachineIp\");",
+                      "pm.environment.unset(\"initialMachinesCount\");",
+                      "pm.environment.unset(\"initialMachinesIds\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json, text/plain, */*" }],
+                "url": "{{baseUrl}}/api/Agents"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
